@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Sets up OIDC Provider and an IAM Role that can manage IAM Role via GitHub Actions OIDC.
+
+Resources:
+  GitHubOIDCProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: "https://token.actions.githubusercontent.com"
+      ClientIdList:
+        - "sts.amazonaws.com"
+      ThumbprintList:
+        - "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+  IamRoleManagementRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: IamRoleManagementRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              # 要：AWSアカウントIDの変換
+              Federated: !Sub "arn:aws:iam::<AWSアカウントID>:oidc-provider/token.actions.githubusercontent.com"
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftCommonInfra:*"
+      Policies:
+        - PolicyName: "AllowRoleManagementOnly"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:DeleteRole
+                  - iam:GetRole
+                  - iam:UpdateRole
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:PassRole
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:UpdateAssumeRolePolicy
+                Resource: "*"
+
+Outputs:
+  IamRoleManagementRoleArn:
+    Description: "ARN of the IAM Role with IAM Role full control"
+    Value: !GetAtt IamRoleManagementRole.Arn
