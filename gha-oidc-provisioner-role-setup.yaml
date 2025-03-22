@@ -42,7 +42,6 @@ Resources:
                   - iam:UpdateRole
                   - iam:AttachRolePolicy
                   - iam:DetachRolePolicy
-                  - iam:PassRole
                   - iam:PutRolePolicy
                   - iam:DeleteRolePolicy
                   - iam:UpdateAssumeRolePolicy
