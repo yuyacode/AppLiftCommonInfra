@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Sets up OIDC Provider and an IAM Role that can manage IAM Role via GitHub Actions OIDC.
+Description: Sets up OIDC Provider and an IAM Role that can manage IAM Role for deployment via GitHub Actions OIDC.
 
 Resources:
   GitHubOIDCProvider:
@@ -20,8 +20,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              # 要：AWSアカウントIDの変換
-              Federated: !Sub "arn:aws:iam::<AWSアカウントID>:oidc-provider/token.actions.githubusercontent.com"
+              Federated: "arn:aws:iam::<AWSアカウントID>:oidc-provider/token.actions.githubusercontent.com"
             Action:
               - "sts:AssumeRoleWithWebIdentity"
             Condition:
@@ -42,11 +41,17 @@ Resources:
                   - iam:UpdateRole
                   - iam:AttachRolePolicy
                   - iam:DetachRolePolicy
-                  - iam:PassRole
                   - iam:PutRolePolicy
                   - iam:DeleteRolePolicy
                   - iam:UpdateAssumeRolePolicy
                 Resource: "*"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: "This IAM role is used by GitHub Actions to deploy CloudFormation templates that dynamically create, update, and delete various IAM roles. Restricting the resource ARNs is not feasible due to the nature of the automation."
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
 
 Outputs:
   IamRoleManagementRoleArn:
