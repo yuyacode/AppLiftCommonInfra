@@ -20,8 +20,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              # 要：AWSアカウントIDの変換
-              Federated: !Sub "arn:aws:iam::<AWSアカウントID>:oidc-provider/token.actions.githubusercontent.com"
+              Federated: "arn:aws:iam::<AWSアカウントID>:oidc-provider/token.actions.githubusercontent.com"
             Action:
               - "sts:AssumeRoleWithWebIdentity"
             Condition:
