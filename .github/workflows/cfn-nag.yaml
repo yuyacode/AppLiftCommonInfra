@@ -22,7 +22,7 @@ jobs:
 
       - name: Run cfn-nag
         run: |
-          files="gha-oidc-provisioner-role-setup.yaml"
+          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deploy.yaml"
           for file in $files; do
             cfn_nag "$file"
           done
