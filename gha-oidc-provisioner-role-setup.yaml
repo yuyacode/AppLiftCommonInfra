@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Sets up OIDC Provider and an IAM Role that can manage IAM Role via GitHub Actions OIDC.
+Description: Sets up OIDC Provider and an IAM Role that can manage IAM Role for deployment via GitHub Actions OIDC.
 
 Resources:
   GitHubOIDCProvider:
