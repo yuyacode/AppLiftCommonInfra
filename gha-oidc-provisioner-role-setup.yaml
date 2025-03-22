@@ -46,6 +46,11 @@ Resources:
                   - iam:DeleteRolePolicy
                   - iam:UpdateAssumeRolePolicy
                 Resource: "*"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: "This IAM role is used by GitHub Actions to deploy CloudFormation templates that dynamically create, update, and delete various IAM roles. Restricting the resource ARNs is not feasible due to the nature of the automation."
 
 Outputs:
   IamRoleManagementRoleArn:
