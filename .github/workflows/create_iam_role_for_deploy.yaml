@@ -6,6 +6,9 @@ on:
     paths:
       - 'iam_role_for_deploy.yaml'
 
+permissions:
+  id-token: write
+
 jobs:
   create_iam_role_for_deploy:
     runs-on: ubuntu-latest
