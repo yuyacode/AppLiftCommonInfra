@@ -1,0 +1,28 @@
+name: cfn-nag
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  cfn-nag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2.2'
+
+      - name: Install cfn-nag
+        run: gem install cfn-nag
+
+      - name: Run cfn-nag
+        run: |
+          files="gha-oidc-provisioner-role-setup.yaml"
+          for file in $files; do
+            cfn_nag "$file"
+          done
