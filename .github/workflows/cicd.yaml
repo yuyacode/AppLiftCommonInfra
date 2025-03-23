@@ -71,6 +71,6 @@ jobs:
         run: |
           aws cloudformation deploy \
             --template-file iam_role_for_deployment.yaml \
-            --stack-name IAM-Role-For-Deployment
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
+            --stack-name IAM-Role-For-Deployment \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --parameter-overrides GitHubOIDCProviderArn=${{ secrets.GH_OIDC_PROVIDER_ARN }}
