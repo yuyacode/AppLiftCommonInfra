@@ -1,5 +1,12 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Description: Sets up OIDC Provider and an IAM Role that can manage IAM Role for deployment via GitHub Actions OIDC.
+
+Parameters:
+  AWSAccountID:
+    Type: String
+    Description: "The 12-digit AWS Account ID"
+    AllowedPattern: '^\d{12}$'
+    ConstraintDescription: "Must be a 12-digit AWS account ID."
 
 Resources:
   GitHubOIDCProvider:
@@ -20,7 +27,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Federated: "arn:aws:iam::<AWSアカウントID>:oidc-provider/token.actions.githubusercontent.com"
+              Federated: !Sub "arn:aws:iam::${AWSAccountID}:oidc-provider/token.actions.githubusercontent.com"
             Action:
               - "sts:AssumeRoleWithWebIdentity"
             Condition:
