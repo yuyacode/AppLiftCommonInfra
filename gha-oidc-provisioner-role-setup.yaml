@@ -42,6 +42,10 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - "cloudformation:CreateChangeSet"
+                  - "cloudformation:DeleteChangeSet"
+                  - "cloudformation:DescribeChangeSet"
+                  - "cloudformation:ExecuteChangeSet"
                   - "cloudformation:CreateStack"
                   - "cloudformation:UpdateStack"
                   - "cloudformation:DeleteStack"
