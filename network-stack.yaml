@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  This CloudFormation template defines shared network infrastructure resources, such as VPCs, subnets, and ALBs, that are commonly used across multiple components of a single application.
+  Each component may be developed and deployed independently using different technologies, but they all rely on this foundational network layer.
+  These resources are intentionally designed to be independent from any single component or technology, serving as a common infrastructure for the application's overall architecture.
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.10.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+
+Outputs:
+  VPCId:
+    Description: The ID of the VPC
+    Value: !Ref VPC
