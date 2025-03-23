@@ -8,10 +8,10 @@ Parameters:
     Type: String
 
 Resources:
-  NetworkResourceDeployRole:
+  NetworkResourceDeploymentRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: NetworkResourceDeployRole
+      RoleName: NetworkResourceDeploymentRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -73,6 +73,6 @@ Resources:
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
 
 Outputs:
-  NetworkResourceDeployRoleArn:
+  NetworkResourceDeploymentRoleArn:
     Description: "ARN of the IAM Role for network resource deployment"
-    Value: !GetAtt NetworkResourceDeployRole.Arn
+    Value: !GetAtt NetworkResourceDeploymentRole.Arn
