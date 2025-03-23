@@ -1,5 +1,12 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Description: Sets up OIDC Provider and an IAM Role that can manage IAM Role for deployment via GitHub Actions OIDC.
+
+Parameters:
+  AWSAccountID:
+    Type: String
+    Description: "The 12-digit AWS Account ID"
+    AllowedPattern: '^\d{12}$'
+    ConstraintDescription: "Must be a 12-digit AWS account ID."
 
 Resources:
   GitHubOIDCProvider:
@@ -11,16 +18,16 @@ Resources:
       ThumbprintList:
         - "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-  IamRoleManagementRole:
+  IamRoleStackDeploymentRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: IamRoleManagementRole
+      RoleName: IamRoleStackDeploymentRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
-              Federated: "arn:aws:iam::<AWSアカウントID>:oidc-provider/token.actions.githubusercontent.com"
+              Federated: !Sub "arn:aws:iam::${AWSAccountID}:oidc-provider/token.actions.githubusercontent.com"
             Action:
               - "sts:AssumeRoleWithWebIdentity"
             Condition:
@@ -29,7 +36,28 @@ Resources:
               StringLike:
                 "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftCommonInfra:*"
       Policies:
-        - PolicyName: "AllowRoleManagementOnly"
+        - PolicyName: "CloudFormationStackManagementPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cloudformation:CreateChangeSet"
+                  - "cloudformation:DeleteChangeSet"
+                  - "cloudformation:DescribeChangeSet"
+                  - "cloudformation:ExecuteChangeSet"
+                  - "cloudformation:CreateStack"
+                  - "cloudformation:UpdateStack"
+                  - "cloudformation:DeleteStack"
+                  - "cloudformation:DescribeStacks"
+                  - "cloudformation:DescribeStackEvents"
+                  - "cloudformation:DescribeStackResources"
+                  - "cloudformation:DescribeStackDriftDetectionStatus"
+                  - "cloudformation:GetTemplate"
+                  - "cloudformation:GetTemplateSummary"
+                  - "cloudformation:ListStackResources"
+                Resource: "*"
+        - PolicyName: "IamRoleManagementPolicy"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -54,6 +82,6 @@ Resources:
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
 
 Outputs:
-  IamRoleManagementRoleArn:
-    Description: "ARN of the IAM Role with IAM Role full control"
-    Value: !GetAtt IamRoleManagementRole.Arn
+  IamRoleStackDeploymentRoleArn:
+    Description: "ARN of the role used to deploy IAM roles via CloudFormation with full IAM permissions"
+    Value: !GetAtt IamRoleStackDeploymentRole.Arn
