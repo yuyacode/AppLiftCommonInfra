@@ -11,10 +11,10 @@ Resources:
       ThumbprintList:
         - "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-  IamRoleManagementRole:
+  IamRoleStackDeploymentRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: IamRoleManagementRole
+      RoleName: IamRoleStackDeploymentRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -29,7 +29,24 @@ Resources:
               StringLike:
                 "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftCommonInfra:*"
       Policies:
-        - PolicyName: "AllowRoleManagementOnly"
+        - PolicyName: "CloudFormationStackManagementPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cloudformation:CreateStack"
+                  - "cloudformation:UpdateStack"
+                  - "cloudformation:DeleteStack"
+                  - "cloudformation:DescribeStacks"
+                  - "cloudformation:DescribeStackEvents"
+                  - "cloudformation:DescribeStackResources"
+                  - "cloudformation:DescribeStackDriftDetectionStatus"
+                  - "cloudformation:GetTemplate"
+                  - "cloudformation:GetTemplateSummary"
+                  - "cloudformation:ListStackResources"
+                Resource: "*"
+        - PolicyName: "IamRoleManagementPolicy"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -54,6 +71,6 @@ Resources:
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
 
 Outputs:
-  IamRoleManagementRoleArn:
-    Description: "ARN of the IAM Role with IAM Role full control"
-    Value: !GetAtt IamRoleManagementRole.Arn
+  IamRoleStackDeploymentRoleArn:
+    Description: "ARN of the role used to deploy IAM roles via CloudFormation with full IAM permissions"
+    Value: !GetAtt IamRoleStackDeploymentRole.Arn
