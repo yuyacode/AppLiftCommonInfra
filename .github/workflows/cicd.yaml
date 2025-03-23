@@ -28,8 +28,9 @@ jobs:
 
       - name: Run cfn-lint
         run: |
-          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deployment.yaml"
+          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deployment.yaml network-stack.yaml"
           for file in $files; do
+            echo "$file"
             cfn-lint "$file" -f parseable
           done
 
@@ -49,8 +50,9 @@ jobs:
 
       - name: Run cfn-nag
         run: |
-          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deployment.yaml"
+          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deployment.yaml network-stack.yaml"
           for file in $files; do
+            echo "$file"
             cfn_nag "$file"
           done
 
