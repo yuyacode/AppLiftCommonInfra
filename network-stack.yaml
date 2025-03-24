@@ -12,6 +12,11 @@ Resources:
       EnableDnsHostnames: true
       EnableDnsSupport: true
       InstanceTenancy: default
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W60
+            reason: "Currently, the service has minimal usage, and the cost of maintaining VPC Flow Logs outweighs the benefits. We plan to enable Flow Logs in the future as the service scales and security requirements grow."
 
 Outputs:
   VPCId:
