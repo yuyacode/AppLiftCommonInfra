@@ -18,33 +18,61 @@ Resources:
           - id: W60
             reason: "Currently, the service has minimal usage, and the cost of maintaining VPC Flow Logs outweighs the benefits. We plan to enable Flow Logs in the future as the service scales and security requirements grow."
   PublicSubnet1a:
-    Type: "AWS::EC2::Subnet"
+    Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: "10.10.1.0/24"
       MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
   PrivateSubnet1a:
-    Type: "AWS::EC2::Subnet"
+    Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: "10.10.2.0/24"
       MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
   PublicSubnet1c:
-    Type: "AWS::EC2::Subnet"
+    Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !Select [1, !GetAZs '']
       CidrBlock: "10.10.3.0/24"
       MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
   PrivateSubnet1c:
-    Type: "AWS::EC2::Subnet"
+    Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !Select [1, !GetAZs '']
       CidrBlock: "10.10.4.0/24"
       MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+  PublicSubnet1aRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1a
+  PublicSubnet1cRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1c
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+    DependsOn: InternetGatewayAttachment
 
 Outputs:
   VPCId:
