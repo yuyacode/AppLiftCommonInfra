@@ -17,6 +17,34 @@ Resources:
         rules_to_suppress:
           - id: W60
             reason: "Currently, the service has minimal usage, and the cost of maintaining VPC Flow Logs outweighs the benefits. We plan to enable Flow Logs in the future as the service scales and security requirements grow."
+  PublicSubnet1a:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: "10.10.1.0/24"
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+  PrivateSubnet1a:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: "10.10.2.0/24"
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+  PublicSubnet1c:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: "10.10.3.0/24"
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+  PrivateSubnet1c:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: "10.10.4.0/24"
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
 
 Outputs:
   VPCId:
