@@ -77,6 +77,46 @@ Resources:
                   - "ec2:CreateTags"
                   - "ec2:DeleteTags"
                 Resource: "*"
+        - PolicyName: InternetGatewayManagementPolicy 
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:CreateInternetGateway"
+                  - "ec2:DescribeInternetGateways"
+                  - "ec2:DeleteInternetGateway"
+                  - "ec2:AttachInternetGateway"
+                  - "ec2:DetachInternetGateway"
+                Resource: "*"
+        - PolicyName: RouteTableManagementPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:CreateRouteTable"
+                  - "ec2:DescribeRouteTables"
+                  - "ec2:DeleteRouteTable"
+                Resource: "*"
+        - PolicyName: RouteManagementPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:CreateRoute"
+                  - "ec2:DeleteRoute"
+                Resource: "*"
+        - PolicyName: RouteAssociationManagementPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:AssociateRouteTable"
+                  - "ec2:DisassociateRouteTable"
+                Resource: "*"
     Metadata:
       cfn_nag:
         rules_to_suppress:
