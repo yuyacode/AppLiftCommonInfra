@@ -22,7 +22,7 @@ Resources:
     Properties:
       AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: "10.10.1.0/24"
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
   PrivateSubnet1a:
     Type: "AWS::EC2::Subnet"
@@ -36,7 +36,7 @@ Resources:
     Properties:
       AvailabilityZone: !Select [1, !GetAZs '']
       CidrBlock: "10.10.3.0/24"
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
   PrivateSubnet1c:
     Type: "AWS::EC2::Subnet"
