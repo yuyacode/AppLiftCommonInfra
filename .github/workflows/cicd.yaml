@@ -54,42 +54,42 @@ jobs:
             cfn_nag "$file"
           done
 
-  # create_iam_role_for_deployment:
-  #   needs: [cfn-lint, cfn-nag]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  create_iam_role_for_deployment:
+    needs: [cfn-lint, cfn-nag]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         role-to-assume: ${{ secrets.IAM_ROLE_STACK_DEPLOYMENT_ROLE_ARN }}
-  #         aws-region: ap-northeast-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_STACK_DEPLOYMENT_ROLE_ARN }}
+          aws-region: ap-northeast-1
 
-  #     - name: Create IAM Role For Deployment
-  #       run: |
-  #         aws cloudformation deploy \
-  #           --template-file iam_role_for_deployment.yaml \
-  #           --stack-name IAM-Role-For-Deployment \
-  #           --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-  #           --parameter-overrides GitHubOIDCProviderArn=${{ secrets.GH_OIDC_PROVIDER_ARN }}
+      - name: Create IAM Role For Deployment
+        run: |
+          aws cloudformation deploy \
+            --template-file iam_role_for_deployment.yaml \
+            --stack-name IAM-Role-For-Deployment \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --parameter-overrides GitHubOIDCProviderArn=${{ secrets.GH_OIDC_PROVIDER_ARN }}
 
-  # deploy-network-stack:
-  #   needs: [create_iam_role_for_deployment]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  deploy-network-stack:
+    needs: [create_iam_role_for_deployment]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         role-to-assume: ${{ secrets.NETWORK_RESOURCE_DEPLOYMENT_ROLE_ARN }}
-  #         aws-region: ap-northeast-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.NETWORK_RESOURCE_DEPLOYMENT_ROLE_ARN }}
+          aws-region: ap-northeast-1
 
-  #     - name: Deploy Network Stack
-  #       run: |
-  #         aws cloudformation deploy \
-  #           --template-file network-stack.yaml \
-  #           --stack-name Network-Stack \
+      - name: Deploy Network Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file network-stack.yaml \
+            --stack-name Network-Stack \
