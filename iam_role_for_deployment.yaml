@@ -144,7 +144,9 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
               StringLike:
-                "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftCommonInfra:*"
+                token.actions.githubusercontent.com:sub:
+                  - repo:yuyacode/AppLift:*
+                  - repo:yuyacode/AppLiftMessageApi:*
       Policies:
         - PolicyName: "CloudFormationStackManagementPolicy"
           PolicyDocument:
@@ -209,7 +211,9 @@ Resources:
               StringEquals:
                 token.actions.githubusercontent.com:aud: 'sts.amazonaws.com'
               StringLike:
-                "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftCommonInfra:*"
+                token.actions.githubusercontent.com:sub:
+                  - repo:yuyacode/AppLift:*
+                  - repo:yuyacode/AppLiftMessageApi:*
       Policies:
         - PolicyName: "ECRLoginAndPushImagePolicy"
           PolicyDocument:
