@@ -73,7 +73,7 @@ jobs:
             --template-file iam_role_for_deployment.yaml \
             --stack-name IAM-Role-For-Deployment \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --parameter-overrides GitHubOIDCProviderArn=${{ secrets.GH_OIDC_PROVIDER_ARN }}
+            --parameter-overrides GitHubOIDCProviderArn=${{ secrets.GH_OIDC_PROVIDER_ARN }} \
             --parameter-overrides GHAOIDCProvisionerROLESetupStackName=GHA-OIDC-Provisioner-ROLE-Setup
 
   # deploy-network-stack:
