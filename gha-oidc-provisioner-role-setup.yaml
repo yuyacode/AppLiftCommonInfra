@@ -45,6 +45,13 @@ Resources:
               - "cloudformation:GetTemplateSummary"
               - "cloudformation:ListStackResources"
             Resource: "*"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W13
+            reason: "This policy grants broad permissions for CloudFormation actions (cloudformation:*). Restricting the Resource scope to specific CloudFormation stack ARNs is impractical, as the role using this policy needs to manage diverse stacks throughout their lifecycle (create, update, delete)."
+          - id: W28
+            reason: "A fixed name is preferred for this common managed policy for easier identification."
   IamRoleStackDeploymentRole:
     Type: AWS::IAM::Role
     Properties:
