@@ -76,21 +76,21 @@ jobs:
             --parameter-overrides GitHubOIDCProviderArn=${{ secrets.GH_OIDC_PROVIDER_ARN }} \
             --parameter-overrides GHAOIDCProvisionerROLESetupStackName=GHA-OIDC-Provisioner-ROLE-Setup
 
-  # deploy-network-stack:
-  #   needs: [create_iam_role_for_deployment]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  deploy-network-stack:
+    needs: [create_iam_role_for_deployment]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         role-to-assume: ${{ secrets.NETWORK_RESOURCE_DEPLOYMENT_ROLE_ARN }}
-  #         aws-region: ap-northeast-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.NETWORK_RESOURCE_DEPLOYMENT_ROLE_ARN }}
+          aws-region: ap-northeast-1
 
-  #     - name: Deploy Network Stack
-  #       run: |
-  #         aws cloudformation deploy \
-  #           --template-file network-stack.yaml \
-  #           --stack-name Network-Stack \
+      - name: Deploy Network Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file network-stack.yaml \
+            --stack-name Network-Stack \
