@@ -1,0 +1,230 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Security Groups for the application stack including Laravel, Message API, RDS, and ALBs.
+
+Parameters:
+  NetworkStackName:
+    Type: String
+    Description: Name of the stack that manages the resources of the network system
+  CompanyAppPort:
+    Type: Number
+    Description: Port number the company-facing Laravel application ECS service listens on.
+  StudentAppPort:
+    Type: Number
+    Description: Port number the student-facing Laravel application ECS service listens on.
+  MessageApiPort:
+    Type: Number
+    Description: Port number the Message API ECS service listens on.
+  InternalAlbListenerPort:
+    Type: Number
+    Description: Listener port for the Internal ALB.
+  DbPort:
+    Type: Number
+    Description: Database port for the RDS instance.
+
+Resources:
+  PublicAlbSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${AWS::StackName}-PublicAlbSG
+      GroupDescription: Allows inbound HTTP/HTTPS from the internet, outbound to Laravel App SG.
+      VpcId: !ImportValue
+        Fn::Sub: "${NetworkStackName}-VPCId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: !Ref CompanyAppPort
+          ToPort: !Ref CompanyAppPort
+          DestinationSecurityGroupId: !Ref CompanyAppSG
+          Description: Allow outbound traffic to company-facing Laravel App SG on its application port.
+        - IpProtocol: tcp
+          FromPort: !Ref StudentAppPort
+          ToPort: !Ref StudentAppPort
+          DestinationSecurityGroupId: !Ref StudentAppSG
+          Description: Allow outbound traffic to student-facing Laravel App SG on its application port.
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-PublicAlbSG
+  CompanyAppSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${AWS::StackName}-CompanyAppSG
+      GroupDescription: Allows inbound from Public ALB, outbound to RDS and Internal ALB.
+      VpcId: !ImportValue
+        Fn::Sub: "${NetworkStackName}-VPCId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref CompanyAppPort
+          ToPort: !Ref CompanyAppPort
+          SourceSecurityGroupId: !Ref PublicAlbSG
+          Description: Allow inbound traffic from Public ALB SG on the application port.
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: !Ref DbPort
+          ToPort: !Ref DbPort
+          DestinationSecurityGroupId: !Ref RdsSG
+          Description: Allow outbound traffic to RDS SG on DB port.
+        - IpProtocol: tcp
+          FromPort: !Ref InternalAlbListenerPort
+          ToPort: !Ref InternalAlbListenerPort
+          DestinationSecurityGroupId: !Ref InternalAlbSG
+          Description: Allow outbound traffic to Internal ALB SG on its listener port.
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: Allow outbound HTTPS traffic to the internet.
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-CompanyAppSG
+  StudentAppSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${AWS::StackName}-StudentAppSG
+      GroupDescription: Allows inbound from Public ALB, outbound to RDS and Internal ALB.
+      VpcId: !ImportValue
+        Fn::Sub: "${NetworkStackName}-VPCId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref StudentAppSG
+          ToPort: !Ref StudentAppSG
+          SourceSecurityGroupId: !Ref PublicAlbSG
+          Description: Allow inbound traffic from Public ALB SG on the application port.
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: !Ref DbPort
+          ToPort: !Ref DbPort
+          DestinationSecurityGroupId: !Ref RdsSG
+          Description: Allow outbound traffic to RDS SG on DB port.
+        - IpProtocol: tcp
+          FromPort: !Ref InternalAlbListenerPort
+          ToPort: !Ref InternalAlbListenerPort
+          DestinationSecurityGroupId: !Ref InternalAlbSG
+          Description: Allow outbound traffic to Internal ALB SG on its listener port.
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: Allow outbound HTTPS traffic to the internet.
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-StudentAppSG
+  InternalAlbSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${AWS::StackName}-InternalAlbSG
+      GroupDescription: Allows inbound from Laravel App SG and Lambda App SG, outbound to Message API SG.
+      VpcId: !ImportValue
+        Fn::Sub: "${NetworkStackName}-VPCId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref InternalAlbListenerPort
+          ToPort: !Ref InternalAlbListenerPort
+          SourceSecurityGroupId: !Ref CompanyAppSG
+          Description: Allow inbound traffic from company-facing Laravel App SG on the listener port.
+        - IpProtocol: tcp
+          FromPort: !Ref InternalAlbListenerPort
+          ToPort: !Ref InternalAlbListenerPort
+          SourceSecurityGroupId: !Ref StudentAppSG
+          Description: Allow inbound traffic from student-facing Laravel App SG on the listener port.
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: !Ref MessageApiPort
+          ToPort: !Ref MessageApiPort
+          DestinationSecurityGroupId: !Ref MessageApiSG
+          Description: Allow outbound traffic to Message API SG on its application port.
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-InternalAlbSG
+  MessageApiSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${AWS::StackName}-MessageApiSG
+      GroupDescription: Allows inbound from Internal ALB, outbound to RDS.
+      VpcId: !ImportValue
+        Fn::Sub: "${NetworkStackName}-VPCId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref MessageApiPort
+          ToPort: !Ref MessageApiPort
+          SourceSecurityGroupId: !Ref InternalAlbSG
+          Description: Allow inbound traffic from Internal ALB SG on the application port.
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: !Ref DbPort
+          ToPort: !Ref DbPort
+          DestinationSecurityGroupId: !Ref RdsSG
+          Description: Allow outbound traffic to RDS SG on DB port.
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: Allow outbound HTTPS traffic to the internet.
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-MessageApiSG
+  RdsSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${AWS::StackName}-RdsSG
+      GroupDescription: Allows inbound DB connections from Laravel App SG and Message API SG.
+      VpcId: !ImportValue
+        Fn::Sub: "${NetworkStackName}-VPCId"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref DbPort
+          ToPort: !Ref DbPort
+          SourceSecurityGroupId: !Ref CompanyAppSG
+          Description: Allow inbound DB connections from company-facing Laravel App SG.
+        - IpProtocol: tcp
+          FromPort: !Ref DbPort
+          ToPort: !Ref DbPort
+          SourceSecurityGroupId: !Ref StudentAppSG
+          Description: Allow inbound DB connections from student-facing Laravel App SG.
+        - IpProtocol: tcp
+          FromPort: !Ref DbPort
+          ToPort: !Ref DbPort
+          SourceSecurityGroupId: !Ref MessageApiSG
+          Description: Allow inbound DB connections from Message API SG.
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-RdsSG
+
+Outputs:
+  PublicAlbSGId:
+    Description: Security Group ID for the Public ALB
+    Value: !GetAtt PublicAlbSG.GroupId
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicAlbSGId
+  CompanyAppSGId:
+    Description: Security Group ID for the Company App ECS Service
+    Value: !GetAtt CompanyAppSG.GroupId
+    Export:
+      Name: !Sub ${AWS::StackName}-CompanyAppSGId
+  StudentAppSGId:
+    Description: Security Group ID for the Student App ECS Service
+    Value: !GetAtt StudentAppSG.GroupId
+    Export:
+      Name: !Sub ${AWS::StackName}-StudentAppSGId
+  InternalAlbSGId:
+    Description: Security Group ID for the Internal ALB
+    Value: !GetAtt InternalAlbSG.GroupId
+    Export:
+      Name: !Sub ${AWS::StackName}-InternalAlbSGId
+  MessageApiSGId:
+    Description: Security Group ID for the Message API ECS Service
+    Value: !GetAtt MessageApiSG.GroupId
+    Export:
+      Name: !Sub ${AWS::StackName}-MessageApiSGId
+  RdsSGId:
+    Description: Security Group ID for the RDS Instance
+    Value: !GetAtt RdsSG.GroupId
+    Export:
+      Name: !Sub ${AWS::StackName}-RdsSGId
