@@ -111,6 +111,11 @@ Resources:
             reason: >
               Egress to 0.0.0.0/0 on port 443 is temporarily allowed as the specific outbound destinations required by the application (e.g., external APIs, AWS services) are not yet fully identified or finalized.
               This rule will be reviewed and tightened to specific endpoints or IP ranges based on the principle of least privilege once the application's communication requirements become clear.
+          - id: W40
+            reason: >
+              Allows all outbound traffic explicitly, primarily to address cfn-lint F1000.
+              The specific outbound requirements for this RDS instance (e.g., for OS patches, metrics, AWS APIs) have not yet been fully determined.
+              This rule is intended as a temporary measure and should be reviewed and restricted to only necessary connections once the requirements are clarified to adhere to the principle of least privilege.
   PublicAlbSGIngressHttp:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -308,7 +313,7 @@ Resources:
         The specific outbound requirements for this RDS instance (e.g., for OS patches, metrics, AWS APIs) have not yet been fully determined.
         This rule is intended as a temporary measure and should be reviewed and restricted to only necessary connections once the requirements are clarified to adhere to the principle of least privilege.
       GroupId: !Ref RdsSG
-      IpProtocol: tcp
+      IpProtocol: "-1"
       CidrIp: 0.0.0.0/0
 
 Outputs:
