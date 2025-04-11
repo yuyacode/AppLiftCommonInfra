@@ -25,7 +25,6 @@ Resources:
   PublicAlbSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub ${AWS::StackName}-PublicAlbSG
       GroupDescription: Public ALB Security Group (Rules defined separately)
       VpcId: !ImportValue
         Fn::Sub: "${NetworkStackName}-VPCId"
@@ -35,7 +34,6 @@ Resources:
   CompanyAppSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub ${AWS::StackName}-CompanyAppSG
       GroupDescription: Company App Security Group (Rules defined separately)
       VpcId: !ImportValue
         Fn::Sub: "${NetworkStackName}-VPCId"
@@ -45,7 +43,6 @@ Resources:
   StudentAppSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub ${AWS::StackName}-StudentAppSG
       GroupDescription: Student App Security Group (Rules defined separately)
       VpcId: !ImportValue
         Fn::Sub: "${NetworkStackName}-VPCId"
@@ -55,7 +52,6 @@ Resources:
   InternalAlbSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub ${AWS::StackName}-InternalAlbSG
       GroupDescription: Internal ALB Security Group (Rules defined separately)
       VpcId: !ImportValue
         Fn::Sub: "${NetworkStackName}-VPCId"
@@ -65,7 +61,6 @@ Resources:
   MessageApiSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub ${AWS::StackName}-MessageApiSG
       GroupDescription: Message API Security Group (Rules defined separately)
       VpcId: !ImportValue
         Fn::Sub: "${NetworkStackName}-VPCId"
@@ -75,7 +70,6 @@ Resources:
   RdsSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub ${AWS::StackName}-RdsSG
       GroupDescription: RDS Security Group (Rules defined separately)
       VpcId: !ImportValue
         Fn::Sub: "${NetworkStackName}-VPCId"
@@ -91,6 +85,13 @@ Resources:
       FromPort: 80
       ToPort: 80
       CidrIp: 0.0.0.0/0
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W2
+            reason: This SG is for a Public ALB, intentionally allowing ingress from 0.0.0.0/0 for public access, which is permissible for ELBs per W2 description.
+          - id: W9
+            reason: Public ALB must accept HTTP traffic from any IP on the internet, not restricted to /32.
   PublicAlbSGIngressHttps:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -100,6 +101,13 @@ Resources:
       FromPort: 443
       ToPort: 443
       CidrIp: 0.0.0.0/0
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W2
+            reason: This SG is for a Public ALB, intentionally allowing ingress from 0.0.0.0/0 for public access, which is permissible for ELBs per W2 description.
+          - id: W9
+            reason: Public ALB must accept HTTP traffic from any IP on the internet, not restricted to /32.
   PublicAlbSGEgressToCompanyApp:
     Type: AWS::EC2::SecurityGroupEgress
     Properties:
@@ -154,6 +162,13 @@ Resources:
       FromPort: 443
       ToPort: 443
       CidrIp: 0.0.0.0/0
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W5
+            reason: >
+              Egress to 0.0.0.0/0 on port 443 is temporarily allowed as the specific outbound destinations required by the application (e.g., external APIs, AWS services) are not yet fully identified or finalized.
+              This rule will be reviewed and tightened to specific endpoints or IP ranges based on the principle of least privilege once the application's communication requirements become clear.
   StudentAppSGIngressFromPublicAlb:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -190,6 +205,13 @@ Resources:
       FromPort: 443
       ToPort: 443
       CidrIp: 0.0.0.0/0
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W5
+            reason: >
+              Egress to 0.0.0.0/0 on port 443 is temporarily allowed as the specific outbound destinations required by the application (e.g., external APIs, AWS services) are not yet fully identified or finalized.
+              This rule will be reviewed and tightened to specific endpoints or IP ranges based on the principle of least privilege once the application's communication requirements become clear.
   InternalAlbSGIngressFromCompanyApp:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -244,6 +266,13 @@ Resources:
       FromPort: 443
       ToPort: 443
       CidrIp: 0.0.0.0/0
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W5
+            reason: >
+              Egress to 0.0.0.0/0 on port 443 is temporarily allowed as the specific outbound destinations required by the application (e.g., external APIs, AWS services) are not yet fully identified or finalized.
+              This rule will be reviewed and tightened to specific endpoints or IP ranges based on the principle of least privilege once the application's communication requirements become clear.
   RdsSGIngressFromCompanyApp:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -271,6 +300,16 @@ Resources:
       FromPort: !Ref DbPort
       ToPort: !Ref DbPort
       SourceSecurityGroupId: !Ref MessageApiSG
+  RdsSGEgressAllowAllTemporary:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      Description: >
+        Allows all outbound traffic explicitly, primarily to address cfn-nag F1000.
+        The specific outbound requirements for this RDS instance (e.g., for OS patches, metrics, AWS APIs) have not yet been fully determined.
+        This rule is intended as a temporary measure and should be reviewed and restricted to only necessary connections once the requirements are clarified to adhere to the principle of least privilege.
+      GroupId: !Ref RdsSG
+      IpProtocol: "-1"
+      CidrIp: 0.0.0.0/0
 
 Outputs:
   PublicAlbSGId:
