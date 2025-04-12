@@ -113,9 +113,10 @@ jobs:
           aws cloudformation deploy \
             --template-file security-group.yaml \
             --stack-name Security-Group \
-            --parameter-overrides NetworkStackName=Network-Stack \
-            --parameter-overrides CompanyAppPort=8081 \
-            --parameter-overrides StudentAppPort=8082 \
-            --parameter-overrides MessageApiPort=8080 \
-            --parameter-overrides InternalAlbListenerPort=80 \
-            --parameter-overrides DbPort=3306
+            --parameter-overrides \
+              NetworkStackName=Network-Stack \
+              CompanyAppPort=8081 \
+              StudentAppPort=8082 \
+              MessageApiPort=8080 \
+              InternalAlbListenerPort=80 \
+              DbPort=3306 \
