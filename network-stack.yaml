@@ -78,3 +78,5 @@ Outputs:
   VPCId:
     Description: The ID of the VPC
     Value: !Ref VPC
+    Export:
+      Name: !Sub "${AWS::StackName}-VPCId"

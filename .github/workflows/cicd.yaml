@@ -28,7 +28,7 @@ jobs:
 
       - name: Run cfn-lint
         run: |
-          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deployment.yaml network-stack.yaml"
+          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deployment.yaml network-stack.yaml security-group.yaml"
           for file in $files; do
             cfn-lint "$file" -f parseable
           done
@@ -49,7 +49,7 @@ jobs:
 
       - name: Run cfn-nag
         run: |
-          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deployment.yaml network-stack.yaml"
+          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deployment.yaml network-stack.yaml security-group.yaml"
           for file in $files; do
             cfn_nag "$file"
           done
@@ -73,7 +73,8 @@ jobs:
             --template-file iam_role_for_deployment.yaml \
             --stack-name IAM-Role-For-Deployment \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --parameter-overrides GitHubOIDCProviderArn=${{ secrets.GH_OIDC_PROVIDER_ARN }}
+            --parameter-overrides GitHubOIDCProviderArn=${{ secrets.GH_OIDC_PROVIDER_ARN }} \
+            --parameter-overrides GHAOIDCProvisionerROLESetupStackName=GHA-OIDC-Provisioner-ROLE-Setup
 
   deploy-network-stack:
     needs: [create_iam_role_for_deployment]
@@ -93,3 +94,29 @@ jobs:
           aws cloudformation deploy \
             --template-file network-stack.yaml \
             --stack-name Network-Stack \
+
+  deploy-security-group:
+    needs: [deploy-network-stack]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.SECURITY_GROUP_DEPLOYMENT_ROLE_ARN }}
+          aws-region: ap-northeast-1
+
+      - name: Deploy Security Group
+        run: |
+          aws cloudformation deploy \
+            --template-file security-group.yaml \
+            --stack-name Security-Group \
+            --parameter-overrides \
+              NetworkStackName=Network-Stack \
+              CompanyAppPort=8081 \
+              StudentAppPort=8082 \
+              MessageApiPort=8080 \
+              InternalAlbListenerPort=80 \
+              DbPort=3306 \

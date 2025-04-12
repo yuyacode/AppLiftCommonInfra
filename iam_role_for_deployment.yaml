@@ -6,6 +6,9 @@ Description: >
 Parameters:
   GitHubOIDCProviderArn:
     Type: String
+  GHAOIDCProvisionerROLESetupStackName:
+    Type: String
+    Description: Specifies the name of the stack responsible for provisioning OIDC components, the associated IAM role, and the CloudFormation management policy.
 
 Resources:
   NetworkResourceDeploymentRole:
@@ -25,28 +28,9 @@ Resources:
                 token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
               StringLike:
                 "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftCommonInfra:*"
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
       Policies:
-        - PolicyName: "CloudFormationStackManagementPolicy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "cloudformation:CreateChangeSet"
-                  - "cloudformation:DeleteChangeSet"
-                  - "cloudformation:DescribeChangeSet"
-                  - "cloudformation:ExecuteChangeSet"
-                  - "cloudformation:CreateStack"
-                  - "cloudformation:UpdateStack"
-                  - "cloudformation:DeleteStack"
-                  - "cloudformation:DescribeStacks"
-                  - "cloudformation:DescribeStackEvents"
-                  - "cloudformation:DescribeStackResources"
-                  - "cloudformation:DescribeStackDriftDetectionStatus"
-                  - "cloudformation:GetTemplate"
-                  - "cloudformation:GetTemplateSummary"
-                  - "cloudformation:ListStackResources"
-                Resource: "*"
         - PolicyName: "VpcManagementPolicy"
           PolicyDocument:
             Version: "2012-10-17"
@@ -128,6 +112,60 @@ Resources:
               Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
           - id: W28
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
+  SecurityGroupDeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: SecurityGroupDeploymentRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action: 
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftCommonInfra:*"
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
+      Policies:
+        - PolicyName: "SecurityGroupManagementPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:CreateSecurityGroup
+                  - ec2:DeleteSecurityGroup
+                  - ec2:AuthorizeSecurityGroupIngress
+                  - ec2:RevokeSecurityGroupIngress
+                  - ec2:UpdateSecurityGroupRuleDescriptionsIngress
+                  - ec2:AuthorizeSecurityGroupEgress
+                  - ec2:RevokeSecurityGroupEgress
+                  - ec2:UpdateSecurityGroupRuleDescriptionsEgress
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeSecurityGroupRules
+                  - ec2:CreateTags
+                  - ec2:DeleteTags
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeTags
+                Resource: "*"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: >
+              This IAM role is assumed by GitHub Actions for infrastructure deployment using CloudFormation templates.
+              The templates dynamically create and manage various AWS resources.
+              Due to the dynamic and flexible nature of the deployment process, it is not feasible to predefine specific resource ARNs.
+              Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
   ECRRepositoryDeploymentRole:
     Type: AWS::IAM::Role
     Properties:
@@ -147,28 +185,9 @@ Resources:
                 token.actions.githubusercontent.com:sub:
                   - repo:yuyacode/AppLift:*
                   - repo:yuyacode/AppLiftMessageApi:*
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
       Policies:
-        - PolicyName: "CloudFormationStackManagementPolicy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "cloudformation:CreateChangeSet"
-                  - "cloudformation:DeleteChangeSet"
-                  - "cloudformation:DescribeChangeSet"
-                  - "cloudformation:ExecuteChangeSet"
-                  - "cloudformation:CreateStack"
-                  - "cloudformation:UpdateStack"
-                  - "cloudformation:DeleteStack"
-                  - "cloudformation:DescribeStacks"
-                  - "cloudformation:DescribeStackEvents"
-                  - "cloudformation:DescribeStackResources"
-                  - "cloudformation:DescribeStackDriftDetectionStatus"
-                  - "cloudformation:GetTemplate"
-                  - "cloudformation:GetTemplateSummary"
-                  - "cloudformation:ListStackResources"
-                Resource: "*"
         - PolicyName: "ECRRepositoryManagementPolicy"
           PolicyDocument:
             Version: "2012-10-17"
@@ -244,6 +263,9 @@ Outputs:
   NetworkResourceDeploymentRoleArn:
     Description: "ARN of the IAM Role for network resource deployment"
     Value: !GetAtt NetworkResourceDeploymentRole.Arn
+  SecurityGroupDeploymentRoleArn:
+    Description: "ARN of the IAM Role for security group deployment"
+    Value: !GetAtt SecurityGroupDeploymentRole.Arn
   ECRRepositoryDeploymentRoleArn:
     Description: "ARN of the IAM Role for ecr repository deployment"
     Value: !GetAtt ECRRepositoryDeploymentRole.Arn
