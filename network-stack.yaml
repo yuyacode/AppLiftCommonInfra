@@ -31,6 +31,13 @@ Resources:
       CidrBlock: "10.10.2.0/24"
       MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
+  RDSSubnet1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: "10.10.5.0/24"
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
   PublicSubnet1c:
     Type: AWS::EC2::Subnet
     Properties:
@@ -43,6 +50,13 @@ Resources:
     Properties:
       AvailabilityZone: !Select [1, !GetAZs '']
       CidrBlock: "10.10.4.0/24"
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+  RDSSubnet1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: "10.10.6.0/24"
       MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
   InternetGateway:
