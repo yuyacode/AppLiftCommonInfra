@@ -309,9 +309,9 @@ Resources:
     Type: AWS::EC2::SecurityGroupEgress
     Properties:
       Description: >
-        Allows all outbound traffic explicitly, primarily to address cfn-nag F1000.
-        The specific outbound requirements for this RDS instance (e.g., for OS patches, metrics, AWS APIs) have not yet been fully determined.
-        This rule is intended as a temporary measure and should be reviewed and restricted to only necessary connections once the requirements are clarified to adhere to the principle of least privilege.
+        Allows all outbound explicitly to address F1000.
+        Temporary setting as RDS outbound requirements (e.g., patches, metrics) are TBD.
+        Must be reviewed and restricted for least privilege later.
       GroupId: !Ref RdsSG
       IpProtocol: "-1"
       CidrIp: 0.0.0.0/0
