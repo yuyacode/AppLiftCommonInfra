@@ -308,10 +308,7 @@ Resources:
   RdsSGEgressAllowAllTemporary:
     Type: AWS::EC2::SecurityGroupEgress
     Properties:
-      Description: >
-        Allows all outbound explicitly to address F1000.
-        Temporary setting as RDS outbound requirements (e.g., patches, metrics) are TBD.
-        Must be reviewed and restricted for least privilege later.
+      Description: Allows all outbound explicitly to address F1000. Temporary setting as RDS outbound requirements (e.g., patches, metrics) are TBD. Must be reviewed and restricted for least privilege later.
       GroupId: !Ref RdsSG
       IpProtocol: "-1"
       CidrIp: 0.0.0.0/0
