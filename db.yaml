@@ -1,0 +1,149 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates an Aurora MySQL Cluster with instances and necessary resources.
+
+Parameters:
+  NetworkStackName:
+    Type: String
+    Description: Name of the stack that manages the resources of the network system
+  SGStackName:
+    Type: String
+    Description: Name of the stack that manages the resources of the security group
+  MasterUsername:
+    Type: String
+    Description: Master username for the database.
+    Default: admin
+    NoEcho: true
+  DBInstanceClass:
+    Type: String
+    Description: Select the instance class for the DB instances.
+    Default: db.t4g.micro
+    AllowedValues:
+      # Add other instance types here when needed for different environments.
+      - db.t4g.micro
+  EngineVersion:
+    Type: String
+    Description: Select the Aurora MySQL Engine version.
+    Default: '8.0.mysql_aurora.3.08.2'
+    AllowedValues:
+      # Add other supported engine versions here when needed for different environments or upgrades.
+      - '8.0.mysql_aurora.3.08.2'
+  ShouldCreateReadReplica:
+    Type: String
+    Description: Controls whether read replica instances are created
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+
+Conditions:
+  CreateReadReplica: !Equals [!Ref ShouldCreateReadReplica, 'true']
+
+Resources:
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for the Aurora cluster
+      SubnetIds:
+        - !ImportValue !Sub "${NetworkStackName}-RDSSubnet1aId"
+        - !ImportValue !Sub "${NetworkStackName}-RDSSubnet1cId"
+  DBClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: Custom Cluster Parameter Group for Aurora MySQL
+      Family: aurora-mysql8.0
+      Parameters:
+        character_set_server: utf8mb4
+        collation_server: utf8mb4_0900_ai_ci
+        server_audit_logging: ON
+        server_audit_events: CONNECT,QUERY_DML,QUERY_DDL
+        server_audit_output_type: FILE
+  DBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: Custom DB Parameter Group for Aurora MySQL Instances
+      Family: aurora-mysql8.0
+      Parameters:
+        time_zone: Asia/Tokyo
+        collation_connection: utf8mb4_0900_ai_ci
+  DBSecretMaster:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    Properties:
+      Name: !Sub '${AWS::StackName}/rds/master-credentials'
+      Description: !Sub 'RDS Master Credentials for stack ${AWS::StackName}'
+      GenerateSecretString:
+        SecretStringTemplate: !Sub '{"username": "${MasterUsername}"}'
+        GenerateStringKey: 'password'
+        PasswordLength: 16
+        ExcludeCharacters: '"@/\'
+  DBSecretMasterAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref DBSecretMaster
+      TargetId: !Ref AuroraCluster
+      TargetType: AWS::RDS::DBCluster
+  AuroraCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-mysql
+      EngineVersion: !Ref EngineVersion
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !ImportValue !Sub "${SGStackName}-RdsSGId"
+      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref DBSecretMaster, ':SecretString:username}}']]
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref DBSecretMaster, ':SecretString:password}}']]
+      BackupRetentionPeriod: 14
+      StorageEncrypted: true
+      EnableCloudwatchLogsExports:
+        - audit
+        - error
+      DeletionProtection: true
+      PreferredBackupWindow: 22:00-23:00 # 日本時間 7:00~8:00
+      PreferredMaintenanceWindow: sat:21:00-sat:22:00 # 日本時間 毎週日曜6:00~7:00
+      CopyTagsToSnapshot: true
+  PrimaryDBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub '${AWS::StackName}-primary-instance'
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBInstanceClass: !Ref DBInstanceClass
+      Engine: aurora-mysql
+      EngineVersion: !Ref EngineVersion
+      DBParameterGroupName: !Ref DBParameterGroup
+      PubliclyAccessible: false
+      EnablePerformanceInsights: true
+      Tags:
+        - Key: Role
+          Value: PrimaryWriter
+  ReadReplicaDBInstance:
+    Type: AWS::RDS::DBInstance
+    Condition: CreateReadReplica
+    Properties:
+      DBInstanceIdentifier: !Sub '${AWS::StackName}-read-replica'
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBInstanceClass: !Ref DBInstanceClass
+      Engine: aurora-mysql
+      EngineVersion: !Ref EngineVersion
+      DBParameterGroupName: !Ref DBParameterGroup
+      PubliclyAccessible: false
+      EnablePerformanceInsights: true
+      PromotionTier: 0
+      Tags:
+        - Key: Role
+          Value: ReadReplica
+
+Outputs:
+  ClusterEndpointAddress:
+    Description: The connection endpoint for the DB cluster (Writer Endpoint)
+    Value: !GetAtt AuroraCluster.Endpoint.Address
+  ReaderEndpointAddress:
+    Description: The connection endpoint for the DB cluster (Reader Endpoint)
+    Value: !GetAtt AuroraCluster.ReadEndpoint.Address
+    Condition: ShouldCreateReadReplica
+  MasterSecretARN:
+    Description: ARN of the Secrets Manager secret for the master user credentials
+    Value: !Ref DBSecretMaster
+  ClusterIdentifier:
+    Description: The identifier (name) of the DB Cluster
+    Value: !Ref AuroraCluster
