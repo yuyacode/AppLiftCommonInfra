@@ -44,10 +44,8 @@ Resources:
     Properties:
       DBSubnetGroupDescription: Subnet group for the Aurora cluster
       SubnetIds:
-        - !ImportValue
-          !Sub "${NetworkStackName}-RDSSubnet1aId"
-        - !ImportValue
-          !Sub "${NetworkStackName}-RDSSubnet1cId"
+        - Fn::ImportValue: !Sub "${NetworkStackName}-RDSSubnet1aId"
+        - Fn::ImportValue: !Sub "${NetworkStackName}-RDSSubnet1cId"
   DBClusterParameterGroup:
     Type: AWS::RDS::DBClusterParameterGroup
     Properties:
@@ -91,8 +89,7 @@ Resources:
       EngineVersion: !Ref EngineVersion
       DBSubnetGroupName: !Ref DBSubnetGroup
       VpcSecurityGroupIds:
-        - !ImportValue
-          !Sub "${SGStackName}-RdsSGId"
+        - Fn::ImportValue: !Sub "${SGStackName}-RdsSGId"
       DBClusterParameterGroupName: !Ref DBClusterParameterGroup
       MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref DBSecretMaster, ':SecretString:username}}']]
       MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref DBSecretMaster, ':SecretString:password}}']]
