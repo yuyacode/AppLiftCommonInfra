@@ -105,7 +105,6 @@ Resources:
   PrimaryDBInstance:
     Type: AWS::RDS::DBInstance
     Properties:
-      DBInstanceIdentifier: !Sub '${AWS::StackName}-primary-instance'
       DBClusterIdentifier: !Ref AuroraCluster
       DBInstanceClass: !Ref DBInstanceClass
       Engine: aurora-mysql
@@ -120,7 +119,6 @@ Resources:
     Type: AWS::RDS::DBInstance
     Condition: CreateReadReplica
     Properties:
-      DBInstanceIdentifier: !Sub '${AWS::StackName}-read-replica'
       DBClusterIdentifier: !Ref AuroraCluster
       DBInstanceClass: !Ref DBInstanceClass
       Engine: aurora-mysql
