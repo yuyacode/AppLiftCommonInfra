@@ -200,11 +200,13 @@ Resources:
                   # DB Cluster Parameter Group
                   - rds:CreateDBClusterParameterGroup
                   - rds:DescribeDBClusterParameterGroups
+                  - rds:DescribeDBClusterParameters
                   - rds:DeleteDBClusterParameterGroup
                   - rds:ModifyDBClusterParameterGroup
                   # DB Parameter Group
                   - rds:CreateDBParameterGroup
                   - rds:DescribeDBParameterGroups
+                  - rds:DescribeDBParameters
                   - rds:DeleteDBParameterGroup
                   - rds:ModifyDBParameterGroup
                   # DB Cluster
