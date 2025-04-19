@@ -62,8 +62,6 @@ Resources:
     Properties:
       Description: Custom DB Parameter Group for Aurora MySQL Instances
       Family: aurora-mysql8.0
-      Parameters:
-        collation_connection: utf8mb4_0900_ai_ci
   DBSecretMaster:
     Type: AWS::SecretsManager::Secret
     DeletionPolicy: Retain
