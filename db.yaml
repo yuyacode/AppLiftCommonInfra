@@ -144,7 +144,7 @@ Outputs:
   ReaderEndpointAddress:
     Description: The connection endpoint for the DB cluster (Reader Endpoint)
     Value: !GetAtt AuroraCluster.ReadEndpoint.Address
-    Condition: ShouldCreateReadReplica
+    Condition: CreateReadReplica
   MasterSecretARN:
     Description: ARN of the Secrets Manager secret for the master user credentials
     Value: !Ref DBSecretMaster
