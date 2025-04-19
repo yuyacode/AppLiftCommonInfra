@@ -68,6 +68,7 @@ Resources:
   DBSecretMaster:
     Type: AWS::SecretsManager::Secret
     DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       Name: !Sub '${AWS::StackName}/rds/master-credentials'
       Description: !Sub 'RDS Master Credentials for stack ${AWS::StackName}'
@@ -76,6 +77,11 @@ Resources:
         GenerateStringKey: 'password'
         PasswordLength: 16
         ExcludeCharacters: '"@/\'
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W77
+            reason: "This secret does not require cross-account sharing and using the default AWS-managed key is acceptable."
   DBSecretMasterAttachment:
     Type: AWS::SecretsManager::SecretTargetAttachment
     Properties:
