@@ -76,47 +76,73 @@ jobs:
             --parameter-overrides GitHubOIDCProviderArn=${{ secrets.GH_OIDC_PROVIDER_ARN }} \
             --parameter-overrides GHAOIDCProvisionerROLESetupStackName=GHA-OIDC-Provisioner-ROLE-Setup
 
-  # deploy-network-stack:
-  #   needs: [create_iam_role_for_deployment]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  deploy-network-stack:
+    needs: [create_iam_role_for_deployment]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         role-to-assume: ${{ secrets.NETWORK_RESOURCE_DEPLOYMENT_ROLE_ARN }}
-  #         aws-region: ap-northeast-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.NETWORK_RESOURCE_DEPLOYMENT_ROLE_ARN }}
+          aws-region: ap-northeast-1
 
-  #     - name: Deploy Network Stack
-  #       run: |
-  #         aws cloudformation deploy \
-  #           --template-file network-stack.yaml \
-  #           --stack-name Network-Stack \
+      - name: Deploy Network Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file network-stack.yaml \
+            --stack-name Network-Stack \
 
-  # deploy-security-group:
-  #   needs: [deploy-network-stack]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  deploy-security-group:
+    needs: [deploy-network-stack]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         role-to-assume: ${{ secrets.SECURITY_GROUP_DEPLOYMENT_ROLE_ARN }}
-  #         aws-region: ap-northeast-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.SECURITY_GROUP_DEPLOYMENT_ROLE_ARN }}
+          aws-region: ap-northeast-1
 
-  #     - name: Deploy Security Group
-  #       run: |
-  #         aws cloudformation deploy \
-  #           --template-file security-group.yaml \
-  #           --stack-name Security-Group \
-  #           --parameter-overrides \
-  #             NetworkStackName=Network-Stack \
-  #             CompanyAppPort=8081 \
-  #             StudentAppPort=8082 \
-  #             MessageApiPort=8080 \
-  #             InternalAlbListenerPort=80 \
-  #             DbPort=3306 \
+      - name: Deploy Security Group
+        run: |
+          aws cloudformation deploy \
+            --template-file security-group.yaml \
+            --stack-name Security-Group \
+            --parameter-overrides \
+              NetworkStackName=Network-Stack \
+              CompanyAppPort=8081 \
+              StudentAppPort=8082 \
+              MessageApiPort=8080 \
+              InternalAlbListenerPort=80 \
+              DbPort=3306 \
+
+  deploy-db:
+    needs: [deploy-security-group]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DB_DEPLOYMENT_ROLE_ARN }}
+          aws-region: ap-northeast-1
+
+      - name: Deploy DB
+        run: |
+          aws cloudformation deploy \
+            --template-file db.yaml \
+            --stack-name DB \
+            --parameter-overrides \
+              NetworkStackName=Network-Stack \
+              SGStackName=Security-Group \
+              MasterUsername=master \
+              DBInstanceClass=db.t4g.micro \
+              EngineVersion=8.0.mysql_aurora.3.08.2 \
+              ShouldCreateReadReplica=true \
