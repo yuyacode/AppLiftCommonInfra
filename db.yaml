@@ -53,17 +53,17 @@ Resources:
       Family: aurora-mysql8.0
       Parameters:
         time_zone: Asia/Tokyo
-        # character_set_server: utf8mb4
-        # collation_server: utf8mb4_0900_ai_ci
-        # server_audit_logging: ON
-        # server_audit_events: CONNECT,QUERY_DML,QUERY_DDL
+        character_set_server: utf8mb4
+        collation_server: utf8mb4_0900_ai_ci
+        server_audit_logging: ON
+        server_audit_events: CONNECT,QUERY_DML,QUERY_DDL
   DBParameterGroup:
     Type: AWS::RDS::DBParameterGroup
     Properties:
       Description: Custom DB Parameter Group for Aurora MySQL Instances
       Family: aurora-mysql8.0
-      # Parameters:
-        # collation_connection: utf8mb4_0900_ai_ci
+      Parameters:
+        collation_connection: utf8mb4_0900_ai_ci
   DBSecretMaster:
     Type: AWS::SecretsManager::Secret
     DeletionPolicy: Retain

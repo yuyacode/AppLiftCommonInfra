@@ -145,4 +145,4 @@ jobs:
               MasterUsername=master \
               DBInstanceClass=db.t4g.medium \
               EngineVersion=8.0.mysql_aurora.3.08.2 \
-              ShouldCreateReadReplica=true \
+              ShouldCreateReadReplica=true

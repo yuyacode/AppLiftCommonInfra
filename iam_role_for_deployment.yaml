@@ -270,10 +270,12 @@ Resources:
               - Effect: Allow
                 Action:
                   - iam:CreateServiceLinkedRole
-                Resource: arn:aws:iam::*:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS
+                Resource: "*"
                 Condition:
                   StringLike:
-                    iam:AWSServiceName: rds.amazonaws.com
+                    iam:AWSServiceName:
+                      - rds.amazonaws.com
+                      - monitoring.rds.amazonaws.com
     Metadata:
       cfn_nag:
         rules_to_suppress:
