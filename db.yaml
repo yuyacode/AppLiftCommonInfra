@@ -69,7 +69,7 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      Name: !Sub '${AWS::StackName}/aurora/master-user-credentials'
+      Name: !Sub '${AWS::StackName}/aurora/master-user-credential'
       Description: !Sub 'RDS Master User Credential for stack ${AWS::StackName}'
       GenerateSecretString:
         SecretStringTemplate: !Sub '{"username": "${MasterUsername}"}'
