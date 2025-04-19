@@ -276,6 +276,8 @@ Resources:
     Metadata:
       cfn_nag:
         rules_to_suppress:
+          - id: F11
+            reason: "iam:PassRole with Resource '*' is mitigated by Condition restricting PassedToService to cloudformation.amazonaws.com."
           - id: W11
             reason: >
               This IAM role is assumed by GitHub Actions for infrastructure deployment using CloudFormation templates.
