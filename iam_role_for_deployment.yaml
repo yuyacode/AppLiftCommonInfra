@@ -245,6 +245,8 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeAvailabilityZones
                   - ec2:DescribeSecurityGroups
                 Resource: "*"
         - PolicyName: "ServiceLinkedRoleForRDSCreatePolicy"
