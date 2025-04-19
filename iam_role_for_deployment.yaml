@@ -276,7 +276,7 @@ Resources:
     Metadata:
       cfn_nag:
         rules_to_suppress:
-          - id: F11
+          - id: F38
             reason: "iam:PassRole with Resource '*' is mitigated by Condition restricting PassedToService to cloudformation.amazonaws.com."
           - id: W11
             reason: >
