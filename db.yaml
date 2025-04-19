@@ -52,18 +52,18 @@ Resources:
       Description: Custom Cluster Parameter Group for Aurora MySQL
       Family: aurora-mysql8.0
       Parameters:
-        character_set_server: utf8mb4
-        collation_server: utf8mb4_0900_ai_ci
-        server_audit_logging: ON
-        server_audit_events: CONNECT,QUERY_DML,QUERY_DDL
+        time_zone: Asia/Tokyo
+        # character_set_server: utf8mb4
+        # collation_server: utf8mb4_0900_ai_ci
+        # server_audit_logging: ON
+        # server_audit_events: CONNECT,QUERY_DML,QUERY_DDL
   DBParameterGroup:
     Type: AWS::RDS::DBParameterGroup
     Properties:
       Description: Custom DB Parameter Group for Aurora MySQL Instances
       Family: aurora-mysql8.0
-      Parameters:
-        time_zone: Asia/Tokyo
-        collation_connection: utf8mb4_0900_ai_ci
+      # Parameters:
+        # collation_connection: utf8mb4_0900_ai_ci
   DBSecretMaster:
     Type: AWS::SecretsManager::Secret
     DeletionPolicy: Retain
@@ -101,8 +101,8 @@ Resources:
       BackupRetentionPeriod: 14
       StorageEncrypted: true
       EnableCloudwatchLogsExports:
-        - audit
-        - error
+        - "audit"
+        - "error"
       DeletionProtection: true
       PreferredBackupWindow: 22:00-23:00 # 日本時間 7:00~8:00
       PreferredMaintenanceWindow: sat:21:00-sat:22:00 # 日本時間 毎週日曜6:00~7:00
@@ -113,7 +113,6 @@ Resources:
       DBClusterIdentifier: !Ref AuroraCluster
       DBInstanceClass: !Ref DBInstanceClass
       Engine: aurora-mysql
-      EngineVersion: !Ref EngineVersion
       DBParameterGroupName: !Ref DBParameterGroup
       PubliclyAccessible: false
       EnablePerformanceInsights: true
@@ -127,7 +126,6 @@ Resources:
       DBClusterIdentifier: !Ref AuroraCluster
       DBInstanceClass: !Ref DBInstanceClass
       Engine: aurora-mysql
-      EngineVersion: !Ref EngineVersion
       DBParameterGroupName: !Ref DBParameterGroup
       PubliclyAccessible: false
       EnablePerformanceInsights: true
