@@ -70,8 +70,8 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      Name: !Sub '${AWS::StackName}/rds/master-credentials'
-      Description: !Sub 'RDS Master Credentials for stack ${AWS::StackName}'
+      Name: !Sub '${AWS::StackName}/rds/master-user-credentials'
+      Description: !Sub 'RDS Master User Credentials for stack ${AWS::StackName}'
       GenerateSecretString:
         SecretStringTemplate: !Sub '{"username": "${MasterUsername}"}'
         GenerateStringKey: 'password'
