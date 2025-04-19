@@ -16,10 +16,10 @@ Parameters:
   DBInstanceClass:
     Type: String
     Description: Select the instance class for the DB instances.
-    Default: db.t4g.micro
+    Default: db.t4g.medium
     AllowedValues:
       # Add other instance types here when needed for different environments.
-      - db.t4g.micro
+      - db.t4g.medium
   EngineVersion:
     Type: String
     Description: Select the Aurora MySQL Engine version.
