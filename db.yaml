@@ -56,7 +56,6 @@ Resources:
         collation_server: utf8mb4_0900_ai_ci
         server_audit_logging: ON
         server_audit_events: CONNECT,QUERY_DML,QUERY_DDL
-        server_audit_output_type: FILE
   DBParameterGroup:
     Type: AWS::RDS::DBParameterGroup
     Properties:
