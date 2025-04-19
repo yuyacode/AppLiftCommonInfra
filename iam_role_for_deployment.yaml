@@ -239,7 +239,7 @@ Resources:
                   - secretsmanager:TagResource
                   - secretsmanager:UntagResource
                 Resource: "*"
-        - PolicyName: "SecurityGroupDescribePolicy"
+        - PolicyName: "EC2NetworkForRDSDescribePolicy"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
