@@ -251,6 +251,17 @@ Resources:
                   - secretsmanager:GetRandomPassword
                   - secretsmanager:TagResource
                   - secretsmanager:UntagResource
+                  - secretsmanager:PutSecretValue
+                  - secretsmanager:PutResourcePolicy
+                  - secretsmanager:UpdateSecretVersionStage
+                Resource: "*"
+        - PolicyName: "SecretsManagerKMSSupportPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:DescribeKey
                 Resource: "*"
         - PolicyName: "EC2NetworkForRDSDescribePolicy"
           PolicyDocument:

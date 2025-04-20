@@ -67,7 +67,7 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      Name: 'AppLift/rds/master-user-credential'
+      Name: 'AppLift/aurora/master-credentials'
       Description: !Sub 'RDS Master User Credential for stack ${AWS::StackName}'
       GenerateSecretString:
         SecretStringTemplate: !Sub '{"username": "${MasterUsername}"}'
