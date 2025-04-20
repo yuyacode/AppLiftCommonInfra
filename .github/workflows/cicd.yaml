@@ -28,7 +28,7 @@ jobs:
 
       - name: Run cfn-lint
         run: |
-          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deployment.yaml network-stack.yaml security-group.yaml"
+          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deployment.yaml network-stack.yaml security-group.yaml db.yaml"
           for file in $files; do
             cfn-lint "$file" -f parseable
           done
@@ -49,7 +49,7 @@ jobs:
 
       - name: Run cfn-nag
         run: |
-          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deployment.yaml network-stack.yaml security-group.yaml"
+          files="gha-oidc-provisioner-role-setup.yaml iam_role_for_deployment.yaml network-stack.yaml security-group.yaml db.yaml"
           for file in $files; do
             cfn_nag "$file"
           done
@@ -93,7 +93,7 @@ jobs:
         run: |
           aws cloudformation deploy \
             --template-file network-stack.yaml \
-            --stack-name Network-Stack \
+            --stack-name Network-Stack
 
   deploy-security-group:
     needs: [deploy-network-stack]
@@ -119,4 +119,30 @@ jobs:
               StudentAppPort=8082 \
               MessageApiPort=8080 \
               InternalAlbListenerPort=80 \
-              DbPort=3306 \
+              DbPort=3306
+
+  deploy-db:
+    needs: [deploy-security-group]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DB_DEPLOYMENT_ROLE_ARN }}
+          aws-region: ap-northeast-1
+
+      - name: Deploy DB
+        run: |
+          aws cloudformation deploy \
+            --template-file db.yaml \
+            --stack-name DB \
+            --parameter-overrides \
+              NetworkStackName=Network-Stack \
+              SGStackName=Security-Group \
+              MasterUsername=master \
+              DBInstanceClass=db.t4g.medium \
+              EngineVersion=8.0.mysql_aurora.3.08.2 \
+              ShouldCreateReadReplica=true
