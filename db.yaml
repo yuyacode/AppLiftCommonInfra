@@ -103,7 +103,7 @@ Resources:
         - "error"
       DeletionProtection: true
       PreferredBackupWindow: 22:00-23:00 # 日本時間 7:00~8:00
-      PreferredMaintenanceWindow: sat:21:00-sat:22:00 # 日本時間 毎週日曜6:00~7:00
+      PreferredMaintenanceWindow: sat:20:00-sat:21:00 # 日本時間 毎週日曜5:00~6:00
       CopyTagsToSnapshot: true
   PrimaryDBInstance:
     Type: AWS::RDS::DBInstance
