@@ -392,6 +392,51 @@ Resources:
               Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
           - id: W28
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
+  LogGroupDeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LogGroupDeploymentRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                token.actions.githubusercontent.com:sub:
+                  - repo:yuyacode/AppLift:*
+                  - repo:yuyacode/AppLiftMessageApi:*
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
+      Policies:
+        - PolicyName: "LogGroupManagementPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:DescribeLogGroups
+                  - logs:DeleteLogGroup
+                  - logs:PutRetentionPolicy
+                  - logs:TagResource
+                Resource: "*"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: >
+              This IAM role is assumed by GitHub Actions for infrastructure deployment using CloudFormation templates.
+              The templates dynamically create and manage various AWS resources.
+              Due to the dynamic and flexible nature of the deployment process, it is not feasible to predefine specific resource ARNs.
+              Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
 
 Outputs:
   NetworkResourceDeploymentRoleArn:
@@ -409,3 +454,6 @@ Outputs:
   ECRImagePushRoleArn:
     Description: "ARN of the IAM Role for ecr image push"
     Value: !GetAtt ECRImagePushRole.Arn
+  LogGroupDeploymentRoleArn:
+    Description: "ARN of the IAM Role for log group deployment"
+    Value: !GetAtt LogGroupDeploymentRole.Arn
