@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS Cluster within the VPC for application services.
+
+Resources:
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: AppLift-Cluster
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+      Tags:
+        - Key: Name
+          Value: AppLift-Cluster
+
+Outputs:
+  ClusterName:
+    Description: The name of the ECS Cluster.
+    Value: !Ref ECSCluster
+    Export:
+      Name: !Sub "${AWS::StackName}-Name"
+  ClusterArn:
+    Description: The ARN of the ECS Cluster.
+    Value: !GetAtt ECSCluster.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-Arn"
