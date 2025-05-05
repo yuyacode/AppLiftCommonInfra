@@ -312,12 +312,6 @@ Resources:
       GroupId: !Ref RdsSG
       IpProtocol: "-1"
       CidrIp: 0.0.0.0/0
-  TemporaryAllAccessIngressRule:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      GroupId: !Ref RdsSG
-      IpProtocol: "-1"
-      CidrIp: 0.0.0.0/0
 
 Outputs:
   PublicAlbSGId:
