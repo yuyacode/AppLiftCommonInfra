@@ -145,6 +145,8 @@ Outputs:
   MasterSecretARN:
     Description: ARN of the Secrets Manager secret for the master user credentials
     Value: !Ref DBSecretMaster
+    Export:
+      Name: !Sub ${AWS::StackName}-MasterSecretARN
   ClusterIdentifier:
     Description: The identifier (name) of the DB Cluster
     Value: !Ref AuroraCluster
