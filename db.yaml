@@ -136,6 +136,8 @@ Outputs:
   ClusterEndpointAddress:
     Description: The connection endpoint for the DB cluster (Writer Endpoint)
     Value: !GetAtt AuroraCluster.Endpoint.Address
+    Export:
+      Name: !Sub ${AWS::StackName}-ClusterEndpointAddress
   ReaderEndpointAddress:
     Description: The connection endpoint for the DB cluster (Reader Endpoint)
     Value: !GetAtt AuroraCluster.ReadEndpoint.Address
