@@ -15,3 +15,10 @@ Resources:
         - DomainName: app-lift.com
           HostedZoneId: !Ref HostedZoneId
       ValidationMethod: DNS
+
+Outputs:
+  CertificateArn:
+    Description: "ARN of the ACM certificate for app-lift.com"
+    Value: !Ref Certificate
+    Export:
+      Name: !Sub "${AWS::StackName}-CertificateArn-AppLiftCom"
