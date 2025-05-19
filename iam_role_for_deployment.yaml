@@ -9,6 +9,11 @@ Parameters:
   GHAOIDCProvisionerROLESetupStackName:
     Type: String
     Description: Specifies the name of the stack responsible for provisioning OIDC components, the associated IAM role, and the CloudFormation management policy.
+  TargetHostedZoneId:
+    Type: String
+    Description: The Route 53 Hosted Zone ID where DNS validation records for the ACM certificate will be created.
+    AllowedPattern: "^Z[A-Z0-9]+$"
+    ConstraintDescription: The Hosted Zone ID must start with 'Z' and consist of uppercase letters and numbers.
 
 Resources:
   NetworkResourceDeploymentRole:
@@ -482,6 +487,49 @@ Resources:
               Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
           - id: W28
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
+  DomainCertificateDeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: DomainCertificateDeploymentRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftCommonInfra:*"
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
+      Policies:
+        - PolicyName: "ACMCertificateAndRoute53ManagementPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - acm:RequestCertificate
+                  - acm:DescribeCertificate
+                  - acm:DeleteCertificate
+                  - acm:ListTagsForCertificate
+                  - acm:AddTagsToCertificate
+                  - acm:RemoveTagsFromCertificate
+                Resource: !Sub "arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/*"
+              - Effect: Allow
+                Action:
+                  - route53:ChangeResourceRecordSets
+                  - route53:ListResourceRecordSets
+                Resource: !Sub "arn:aws:route53:::hostedzone/${TargetHostedZoneId}"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
 
 Outputs:
   NetworkResourceDeploymentRoleArn:
@@ -505,3 +553,6 @@ Outputs:
   ECSClusterDeploymentRoleArn:
     Description: "ARN of the IAM Role for ecs cluster deployment"
     Value: !GetAtt ECSClusterDeploymentRole.Arn
+  DomainCertificateDeploymentRoleArn:
+    Description: "ARN of the IAM Role for domain and certificate deployment"
+    Value: !GetAtt DomainCertificateDeploymentRole.Arn
