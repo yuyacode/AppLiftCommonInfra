@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This CloudFormation stack provisions and manages resources for domain registration using Amazon Route 53, and for the provisioning, validation, and management of SSL/TLS certificates using AWS Certificate Manager (ACM).
+
+Parameters:
+  HostedZoneId:
+    Type: String
+    Description: The Route 53 Hosted Zone ID for app-lift.com.
+
+Resources:
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: app-lift.com
+      DomainValidationOptions:
+        - DomainName: app-lift.com
+          HostedZoneId: !Ref HostedZoneId
+      ValidationMethod: DNS
