@@ -576,6 +576,10 @@ Resources:
     Metadata:
       cfn_nag:
         rules_to_suppress:
+          - id: W11
+            reason: >
+              The kms:DescribeKey on Resource: '*' is used to ensure Secrets Manager can reliably describe its default AWS-managed KMS key during CloudFormation operations.
+              This read-only access mitigates deployment issues due to the difficulty of precisely targeting the default key's ARN.
           - id: W28
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
 
