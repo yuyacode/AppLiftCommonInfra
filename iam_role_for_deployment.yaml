@@ -530,6 +530,58 @@ Resources:
         rules_to_suppress:
           - id: W28
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
+  SecretsManagerDeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: SecretsManagerDeploymentRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                token.actions.githubusercontent.com:sub:
+                  - repo:yuyacode/AppLift:*
+                  - repo:yuyacode/AppLiftMessageApi:*
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
+      Policies:
+        - PolicyName: "SecretsManagerManagementPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:CreateSecret
+                  - secretsmanager:DescribeSecret
+                  - secretsmanager:DeleteSecret
+                  - secretsmanager:UpdateSecret
+                  - secretsmanager:TagResource
+                  - secretsmanager:UntagResource
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
+        - PolicyName: "SecretsManagerKMSSupportPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:DescribeKey
+                Resource: "*"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: >
+              The kms:DescribeKey on Resource: '*' is used to ensure Secrets Manager can reliably describe its default AWS-managed KMS key during CloudFormation operations.
+              This read-only access mitigates deployment issues due to the difficulty of precisely targeting the default key's ARN.
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
 
 Outputs:
   NetworkResourceDeploymentRoleArn:
@@ -556,3 +608,6 @@ Outputs:
   DomainCertificateDeploymentRoleArn:
     Description: "ARN of the IAM Role for domain and certificate deployment"
     Value: !GetAtt DomainCertificateDeploymentRole.Arn
+  SecretsManagerDeploymentRoleArn:
+    Description: "ARN of the IAM Role for secrets manager deployment"
+    Value: !GetAtt SecretsManagerDeploymentRole.Arn
