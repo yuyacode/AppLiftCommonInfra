@@ -94,11 +94,31 @@ Outputs:
     Value: !Ref VPC
     Export:
       Name: !Sub "${AWS::StackName}-VPCId"
+  PublicSubnet1aId:
+    Description: Public Subnet ID in Availability Zone a
+    Value: !Ref PublicSubnet1a
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicSubnet1aId"
+  PrivateSubnet1aId:
+    Description: Private Subnet ID in Availability Zone a
+    Value: !Ref PrivateSubnet1a
+    Export:
+      Name: !Sub "${AWS::StackName}-PrivateSubnet1aId"
   RDSSubnet1aId:
     Description: Subnet ID for RDS in Availability Zone a
     Value: !Ref RDSSubnet1a
     Export:
       Name: !Sub "${AWS::StackName}-RDSSubnet1aId"
+  PublicSubnet1cId:
+    Description: Public Subnet ID in Availability Zone c
+    Value: !Ref PublicSubnet1c
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicSubnet1cId"
+  PrivateSubnet1cId:
+    Description: Private Subnet ID in Availability Zone c
+    Value: !Ref PrivateSubnet1c
+    Export:
+      Name: !Sub "${AWS::StackName}-PrivateSubnet1cId"
   RDSSubnet1cId:
     Description: Subnet ID for RDS in Availability Zone c
     Value: !Ref RDSSubnet1c
