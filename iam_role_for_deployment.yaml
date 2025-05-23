@@ -590,10 +590,10 @@ Resources:
               This read-only access mitigates deployment issues due to the difficulty of precisely targeting the default key's ARN.
           - id: W28
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
-  ECSDeploymentRole:
+  ECSServiceTaskDeploymentRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: ECSDeploymentRole
+      RoleName: ECSServiceTaskDeploymentRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -735,6 +735,6 @@ Outputs:
   SecretsManagerDeploymentRoleArn:
     Description: "ARN of the IAM Role for secrets manager deployment"
     Value: !GetAtt SecretsManagerDeploymentRole.Arn
-  ECSDeploymentRoleArn:
+  ECSServiceTaskDeploymentRoleArn:
     Description: "ARN of the IAM Role for ECS Service and Task deployment"
-    Value: !GetAtt ECSDeploymentRole.Arn
+    Value: !GetAtt ECSServiceTaskDeploymentRole.Arn
