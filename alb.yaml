@@ -25,6 +25,11 @@ Resources:
       Subnets:
         - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1aId"
         - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1cId"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W52
+            reason: "Disabled due to low current user traffic and no need for traffic analysis at this time; cost and operational overhead considerations."
   PublicALBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -111,6 +116,11 @@ Resources:
       Subnets:
         - Fn::ImportValue: !Sub "${NetworkStackName}-PrivateSubnet1aId"
         - Fn::ImportValue: !Sub "${NetworkStackName}-PrivateSubnet1cId"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W52
+            reason: "Disabled since this ALB only serves internal traffic and traffic analysis is not required; cost and operational overhead considerations."
   InternalALBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -120,6 +130,11 @@ Resources:
       LoadBalancerArn: !Ref InternalALB
       Port: 80
       Protocol: HTTP
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W56
+            reason: "HTTP is allowed because this ALB only handles internal VPC traffic."
   MessageApiTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
