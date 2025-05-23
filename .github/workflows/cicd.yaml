@@ -76,7 +76,11 @@ jobs:
             --parameter-overrides \
               GitHubOIDCProviderArn=${{ secrets.GH_OIDC_PROVIDER_ARN }} \
               GHAOIDCProvisionerROLESetupStackName=GHA-OIDC-Provisioner-ROLE-Setup \
-              TargetHostedZoneId=Z03831111H7LDS5Y2U8PQ
+              TargetHostedZoneId=Z03831111H7LDS5Y2U8PQ \
+              ExecutionRoleStackName=ECS-Task-Execution-Role \
+              CompanyRoleStackName=Company-Role \
+              StudentRoleStackName=Student-Role \
+              MessageAPIRoleStackName=Message-API-Role
 
   deploy-network-stack:
     needs: [create_iam_role_for_deployment]

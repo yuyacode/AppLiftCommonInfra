@@ -14,6 +14,14 @@ Parameters:
     Description: The Route 53 Hosted Zone ID where DNS validation records for the ACM certificate will be created.
     AllowedPattern: "^Z[A-Z0-9]+$"
     ConstraintDescription: The Hosted Zone ID must start with 'Z' and consist of uppercase letters and numbers.
+  ExecutionRoleStackName:
+    Type: String
+  CompanyRoleStackName:
+    Type: String
+  StudentRoleStackName:
+    Type: String
+  MessageAPIRoleStackName:
+    Type: String
 
 Resources:
   NetworkResourceDeploymentRole:
@@ -582,6 +590,122 @@ Resources:
               This read-only access mitigates deployment issues due to the difficulty of precisely targeting the default key's ARN.
           - id: W28
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
+  ECSDeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ECSDeploymentRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                token.actions.githubusercontent.com:sub:
+                  - repo:yuyacode/AppLift:*
+                  - repo:yuyacode/AppLiftMessageApi:*
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
+      Policies:
+        - PolicyName: ECSManagementPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecs:RegisterTaskDefinition
+                  - ecs:DeregisterTaskDefinition
+                  - ecs:DescribeTaskDefinition
+                  - ecs:CreateService
+                  - ecs:UpdateService
+                  - ecs:DeleteService
+                  - ecs:DescribeServices
+                  - ecs:DescribeClusters
+                  - ecs:TagResource
+                  - ecs:UntagResource
+                  - ecs:ListTagsForResource
+                Resource: "*"
+        - PolicyName: IAMPassRoleAndGetRolePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: iam:GetRole
+                Resource:
+                  - !ImportValue
+                      Fn::Sub: "${ExecutionRoleStackName}-Arn"
+                  - !ImportValue
+                      Fn::Sub: "${CompanyRoleStackName}-ECSTaskRoleArn"
+                  - !ImportValue
+                      Fn::Sub: "${StudentRoleStackName}-ECSTaskRoleArn"
+                  - !ImportValue
+                      Fn::Sub: "${MessageAPIRoleStackName}-ECSTaskRoleArn"
+              - Effect: Allow
+                Action: iam:PassRole
+                Resource:
+                  - !ImportValue
+                      Fn::Sub: "${ExecutionRoleStackName}-Arn"
+                  - !ImportValue
+                      Fn::Sub: "${CompanyRoleStackName}-ECSTaskRoleArn"
+                  - !ImportValue
+                      Fn::Sub: "${StudentRoleStackName}-ECSTaskRoleArn"
+                  - !ImportValue
+                      Fn::Sub: "${MessageAPIRoleStackName}-ECSTaskRoleArn"
+                Condition:
+                  StringEqualsIfExists:
+                    "iam:PassedToService": "ecs-tasks.amazonaws.com"
+        - PolicyName: CloudWatchLogsManagementPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:DescribeLogGroups
+                  - logs:DeleteLogGroup
+                  - logs:PutRetentionPolicy
+                  - logs:TagResource
+                  - logs:UntagResource
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*"
+        - PolicyName: DependencyValidationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:DescribeSecret
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeNetworkInterfaces
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeTargetGroups
+                  - elasticloadbalancing:DescribeListeners
+                Resource: "*"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: >
+              This IAM role is assumed by GitHub Actions for infrastructure deployment using CloudFormation templates.
+              The templates dynamically create and manage various AWS resources.
+              Due to the dynamic and flexible nature of the deployment process, it is not feasible to predefine specific resource ARNs.
+              Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
+          - id: W76
+            reason: >
+              Policy complexity (SPCM > 25) is acknowledged.
+              The current comprehensive scope is intentional for this CI/CD role to avoid over-fragmentation at this stage.
+              The policy structure will be reassessed if future modifications significantly increase its complexity.
 
 Outputs:
   NetworkResourceDeploymentRoleArn:
@@ -611,3 +735,6 @@ Outputs:
   SecretsManagerDeploymentRoleArn:
     Description: "ARN of the IAM Role for secrets manager deployment"
     Value: !GetAtt SecretsManagerDeploymentRole.Arn
+  ECSDeploymentRoleArn:
+    Description: "ARN of the IAM Role for ECS Service and Task deployment"
+    Value: !GetAtt ECSDeploymentRole.Arn
