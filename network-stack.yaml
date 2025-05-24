@@ -96,7 +96,7 @@ Resources:
     Type: AWS::EC2::NatGateway
     Condition: enableMultiAzNatStrategy
     Properties:
-      AllocationId: !If [enableMultiAzNatStrategy, !GetAtt EIP2.AllocationId, !Ref "AWS::NoValue"]
+      AllocationId: !GetAtt EIP2.AllocationId
       SubnetId: !Ref PublicSubnet1c
   PublicSubnet1aRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
