@@ -104,6 +104,7 @@ Resources:
                 Action:
                   - "ec2:CreateRoute"
                   - "ec2:DeleteRoute"
+                  - "ec2:ReplaceRoute"
                 Resource: "*"
         - PolicyName: RouteAssociationManagementPolicy
           PolicyDocument:
@@ -113,6 +114,32 @@ Resources:
                 Action:
                   - "ec2:AssociateRouteTable"
                   - "ec2:DisassociateRouteTable"
+                Resource: "*"
+        - PolicyName: NatGatewayManagementPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:CreateNatGateway"
+                  - "ec2:DeleteNatGateway"
+                  - "ec2:DescribeNatGateways"
+                  - "ec2:CreateTags"
+                  - "ec2:DeleteTags"
+                Resource: "*"
+        - PolicyName: EipManagementPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ec2:AllocateAddress"
+                  - "ec2:ReleaseAddress"
+                  - "ec2:AssociateAddress"
+                  - "ec2:DisassociateAddress"
+                  - "ec2:DescribeAddresses"
+                  - "ec2:CreateTags"
+                  - "ec2:DeleteTags"
                 Resource: "*"
     Metadata:
       cfn_nag:
