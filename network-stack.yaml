@@ -4,6 +4,18 @@ Description: >
   Each component may be developed and deployed independently using different technologies, but they all rely on this foundational network layer.
   These resources are intentionally designed to be independent from any single component or technology, serving as a common infrastructure for the application's overall architecture.
 
+Parameters:
+  NATGatewayStrategy:
+    Type: String
+    Description: "single = 1 NAT (cost-saving), perAZ = AZ-redundant"
+    AllowedValues:
+      - single
+      - perAZ
+    Default: single
+
+Conditions:
+  enableMultiAzNatStrategy: !Equals [ !Ref NATGatewayStrategy, perAZ ]
+
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -66,6 +78,26 @@ Resources:
     Properties:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
+  EIP1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  EIP2:
+    Type: AWS::EC2::EIP
+    Condition: enableMultiAzNatStrategy
+    Properties:
+      Domain: vpc
+  NATGateway1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt EIP1.AllocationId
+      SubnetId: !Ref PublicSubnet1a
+  NATGateway2:
+    Type: AWS::EC2::NatGateway
+    Condition: enableMultiAzNatStrategy
+    Properties:
+      AllocationId: !GetAtt EIP2.AllocationId
+      SubnetId: !Ref PublicSubnet1c
   PublicSubnet1aRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -87,6 +119,36 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
     DependsOn: InternetGatewayAttachment
+  PrivateSubnet1aRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId: !Ref PrivateSubnet1a
+  PrivateSubnet1cRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      SubnetId: !Ref PrivateSubnet1c
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+  PrivateRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+  RouteToNATGateway1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NATGateway1
+  RouteToNATGateway2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !If [enableMultiAzNatStrategy, !Ref NATGateway2, !Ref NATGateway1]
 
 Outputs:
   VPCId:

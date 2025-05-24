@@ -99,7 +99,9 @@ jobs:
         run: |
           aws cloudformation deploy \
             --template-file network-stack.yaml \
-            --stack-name Network-Stack
+            --stack-name Network-Stack \
+            --parameter-overrides \
+              NATGatewayStrategy=single
 
   deploy-security-group:
     needs: [deploy-network-stack]
