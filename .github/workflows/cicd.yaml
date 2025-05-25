@@ -215,6 +215,15 @@ jobs:
             --parameter-overrides \
               HostedZoneId=Z03831111H7LDS5Y2U8PQ
 
+  # ───────────────────────────────────────────────────────────────
+  # 【事前準備】ELBサービス用Service-Linked-Roleの作成
+  # 
+  # デプロイ先環境にまだService-Linked-Role「AWSServiceRoleForElasticLoadBalancing」が存在しない場合、以下のコマンドを実行して、手動で作成してください。
+  # 
+  #   aws iam create-service-linked-role --aws-service-name elasticloadbalancing.amazonaws.com
+  # 
+  # ※cloudformationテンプレートの可搬性を高めるため、Service-Linked-Roleは手動で作成する運用としています。
+  # ───────────────────────────────────────────────────────────────
   deploy-alb:
     needs: [deploy-security-group, deploy-domain-certificate]
     runs-on: ubuntu-latest
