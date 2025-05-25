@@ -7,12 +7,12 @@ Parameters:
   NetworkStackName:
     Type: String
     Description: Name of the stack that manages the resources of the network system
-  SGStackName:
-    Type: String
-    Description: Name of the stack that manages the resources of the security group
-  DomainCertificateStackName:
-    Type: String
-    Description: Name of the stack that manages the resources of domain and certificate
+  # SGStackName:
+  #   Type: String
+  #   Description: Name of the stack that manages the resources of the security group
+  # DomainCertificateStackName:
+  #   Type: String
+  #   Description: Name of the stack that manages the resources of domain and certificate
 
 Resources:
   # PublicALB:
