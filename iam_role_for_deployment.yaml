@@ -762,18 +762,32 @@ Resources:
                   - elasticloadbalancing:CreateLoadBalancer
                   - elasticloadbalancing:DeleteLoadBalancer
                   - elasticloadbalancing:DescribeLoadBalancers
+                  - elasticloadbalancing:DescribeLoadBalancerAttributes
+                  - elasticloadbalancing:ModifyLoadBalancerAttributes
                   - elasticloadbalancing:CreateListener
                   - elasticloadbalancing:DeleteListener
                   - elasticloadbalancing:DescribeListeners
+                  - elasticloadbalancing:ModifyListener
                   - elasticloadbalancing:CreateRule
                   - elasticloadbalancing:DeleteRule
                   - elasticloadbalancing:DescribeRules
+                  - elasticloadbalancing:ModifyRule
+                  - elasticloadbalancing:SetRulePriorities
                   - elasticloadbalancing:CreateTargetGroup
                   - elasticloadbalancing:DeleteTargetGroup
                   - elasticloadbalancing:DescribeTargetGroups
+                  - elasticloadbalancing:ModifyTargetGroup
+                  - elasticloadbalancing:DescribeTargetGroupAttributes
                   - elasticloadbalancing:ModifyTargetGroupAttributes
                   - elasticloadbalancing:RegisterTargets
                   - elasticloadbalancing:DeregisterTargets
+                  - elasticloadbalancing:DescribeTargetHealth
+                  - elasticloadbalancing:AddTags
+                  - elasticloadbalancing:RemoveTags
+                  - elasticloadbalancing:DescribeTags
+                  - elasticloadbalancing:SetSubnets
+                  - elasticloadbalancing:SetSecurityGroups
+                  - elasticloadbalancing:SetIpAddressType
                 Resource: "*"
         - PolicyName: EC2DescribePolicy
           PolicyDocument:
@@ -786,6 +800,14 @@ Resources:
                   - ec2:DescribeSecurityGroups
                   - ec2:DescribeInternetGateways
                   - ec2:DescribeTags
+                Resource: "*"
+        - PolicyName: ACMDescribePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - acm:DescribeCertificate
                 Resource: "*"
     Metadata:
       cfn_nag:
