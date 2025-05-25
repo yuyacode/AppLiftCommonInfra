@@ -7,9 +7,9 @@ Parameters:
   NetworkStackName:
     Type: String
     Description: Name of the stack that manages the resources of the network system
-  # SGStackName:
-  #   Type: String
-  #   Description: Name of the stack that manages the resources of the security group
+  SGStackName:
+    Type: String
+    Description: Name of the stack that manages the resources of the security group
   # DomainCertificateStackName:
   #   Type: String
   #   Description: Name of the stack that manages the resources of domain and certificate
@@ -106,35 +106,35 @@ Resources:
       TargetType: ip
       VpcId: !ImportValue
         Fn::Sub: "${NetworkStackName}-VPCId"
-  # InternalALB:
-  #   Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-  #   Properties:
-  #     IpAddressType: ipv4
-  #     Scheme: internal
-  #     SecurityGroups:
-  #       - Fn::ImportValue: !Sub "${SGStackName}-InternalAlbSGId"
-  #     Subnets:
-  #       - Fn::ImportValue: !Sub "${NetworkStackName}-PrivateSubnet1aId"
-  #       - Fn::ImportValue: !Sub "${NetworkStackName}-PrivateSubnet1cId"
-  #   Metadata:
-  #     cfn_nag:
-  #       rules_to_suppress:
-  #         - id: W52
-  #           reason: "Disabled since this ALB only serves internal traffic and traffic analysis is not required; cost and operational overhead considerations."
-  # InternalALBListener:
-  #   Type: AWS::ElasticLoadBalancingV2::Listener
-  #   Properties:
-  #     DefaultActions: 
-  #       - Type: forward
-  #         TargetGroupArn: !Ref MessageApiTargetGroup
-  #     LoadBalancerArn: !Ref InternalALB
-  #     Port: 80
-  #     Protocol: HTTP
-  #   Metadata:
-  #     cfn_nag:
-  #       rules_to_suppress:
-  #         - id: W56
-  #           reason: "HTTP is allowed because this ALB only handles internal VPC traffic."
+  InternalALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      IpAddressType: ipv4
+      Scheme: internal
+      SecurityGroups:
+        - Fn::ImportValue: !Sub "${SGStackName}-InternalAlbSGId"
+      Subnets:
+        - Fn::ImportValue: !Sub "${NetworkStackName}-PrivateSubnet1aId"
+        - Fn::ImportValue: !Sub "${NetworkStackName}-PrivateSubnet1cId"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W52
+            reason: "Disabled since this ALB only serves internal traffic and traffic analysis is not required; cost and operational overhead considerations."
+  InternalALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions: 
+        - Type: forward
+          TargetGroupArn: !Ref MessageApiTargetGroup
+      LoadBalancerArn: !Ref InternalALB
+      Port: 80
+      Protocol: HTTP
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W56
+            reason: "HTTP is allowed because this ALB only handles internal VPC traffic."
   MessageApiTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -185,26 +185,26 @@ Outputs:
     Value: !Ref StudentTargetGroup
     Export:
       Name: !Sub "${AWS::StackName}-StudentTargetGroupArn"
-  # InternalALBArn:
-  #   Description: ARN of the Internal ALB
-  #   Value: !Ref InternalALB
-  #   Export:
-  #     Name: !Sub "${AWS::StackName}-InternalALBArn"
-  # InternalALBDNSName:
-  #   Description: DNS Name of the Internal ALB
-  #   Value: !GetAtt InternalALB.DNSName
-  #   Export:
-  #     Name: !Sub "${AWS::StackName}-InternalALBDNSName"
-  # InternalALBCanonicalHostedZoneId:
-  #   Description: Canonical Hosted Zone ID of the Internal ALB
-  #   Value: !GetAtt InternalALB.CanonicalHostedZoneID
-  #   Export:
-  #     Name: !Sub "${AWS::StackName}-InternalALBCanonicalHostedZoneId"
-  # InternalALBListenerArn:
-  #   Description: ARN of the Internal ALB Listener
-  #   Value: !Ref InternalALBListener
-  #   Export:
-  #     Name: !Sub "${AWS::StackName}-InternalALBListenerArn"
+  InternalALBArn:
+    Description: ARN of the Internal ALB
+    Value: !Ref InternalALB
+    Export:
+      Name: !Sub "${AWS::StackName}-InternalALBArn"
+  InternalALBDNSName:
+    Description: DNS Name of the Internal ALB
+    Value: !GetAtt InternalALB.DNSName
+    Export:
+      Name: !Sub "${AWS::StackName}-InternalALBDNSName"
+  InternalALBCanonicalHostedZoneId:
+    Description: Canonical Hosted Zone ID of the Internal ALB
+    Value: !GetAtt InternalALB.CanonicalHostedZoneID
+    Export:
+      Name: !Sub "${AWS::StackName}-InternalALBCanonicalHostedZoneId"
+  InternalALBListenerArn:
+    Description: ARN of the Internal ALB Listener
+    Value: !Ref InternalALBListener
+    Export:
+      Name: !Sub "${AWS::StackName}-InternalALBListenerArn"
   MessageApiTargetGroupArn:
     Description: ARN of the Message API Target Group
     Value: !Ref MessageApiTargetGroup
