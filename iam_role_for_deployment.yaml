@@ -717,6 +717,27 @@ Resources:
                   - elasticloadbalancing:DescribeTargetGroups
                   - elasticloadbalancing:DescribeListeners
                 Resource: "*"
+        - PolicyName: ServiceLinkedRoleForECSCreatePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:CreateServiceLinkedRole
+                Resource: "*"
+                Condition:
+                  StringLike:
+                    iam:AWSServiceName:
+                      - ecs.amazonaws.com
+        - PolicyName: ServiceLinkedRoleForECSManagePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:AttachRolePolicy
+                  - iam:PutRolePolicy
+                Resource: "*"
     Metadata:
       cfn_nag:
         rules_to_suppress:
@@ -733,6 +754,93 @@ Resources:
               Policy complexity (SPCM > 25) is acknowledged.
               The current comprehensive scope is intentional for this CI/CD role to avoid over-fragmentation at this stage.
               The policy structure will be reassessed if future modifications significantly increase its complexity.
+  ALBDeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ALBDeploymentRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftCommonInfra:*"
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
+      Policies:
+        - PolicyName: ALBManagementPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:CreateLoadBalancer
+                  - elasticloadbalancing:DeleteLoadBalancer
+                  - elasticloadbalancing:DescribeLoadBalancers
+                  - elasticloadbalancing:DescribeLoadBalancerAttributes
+                  - elasticloadbalancing:ModifyLoadBalancerAttributes
+                  - elasticloadbalancing:CreateListener
+                  - elasticloadbalancing:DeleteListener
+                  - elasticloadbalancing:DescribeListeners
+                  - elasticloadbalancing:ModifyListener
+                  - elasticloadbalancing:CreateRule
+                  - elasticloadbalancing:DeleteRule
+                  - elasticloadbalancing:DescribeRules
+                  - elasticloadbalancing:ModifyRule
+                  - elasticloadbalancing:SetRulePriorities
+                  - elasticloadbalancing:CreateTargetGroup
+                  - elasticloadbalancing:DeleteTargetGroup
+                  - elasticloadbalancing:DescribeTargetGroups
+                  - elasticloadbalancing:ModifyTargetGroup
+                  - elasticloadbalancing:DescribeTargetGroupAttributes
+                  - elasticloadbalancing:ModifyTargetGroupAttributes
+                  - elasticloadbalancing:RegisterTargets
+                  - elasticloadbalancing:DeregisterTargets
+                  - elasticloadbalancing:DescribeTargetHealth
+                  - elasticloadbalancing:AddTags
+                  - elasticloadbalancing:RemoveTags
+                  - elasticloadbalancing:DescribeTags
+                  - elasticloadbalancing:SetSubnets
+                  - elasticloadbalancing:SetSecurityGroups
+                  - elasticloadbalancing:SetIpAddressType
+                Resource: "*"
+        - PolicyName: EC2DescribePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeInternetGateways
+                  - ec2:DescribeTags
+                Resource: "*"
+        - PolicyName: ACMDescribePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - acm:DescribeCertificate
+                Resource: "*"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: >
+              This IAM role is assumed by GitHub Actions for infrastructure deployment using CloudFormation templates.
+              The templates dynamically create and manage various AWS resources.
+              Due to the dynamic and flexible nature of the deployment process, it is not feasible to predefine specific resource ARNs.
+              Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
 
 Outputs:
   NetworkResourceDeploymentRoleArn:
@@ -765,3 +873,6 @@ Outputs:
   ECSServiceTaskDeploymentRoleArn:
     Description: "ARN of the IAM Role for ECS Service and Task deployment"
     Value: !GetAtt ECSServiceTaskDeploymentRole.Arn
+  ALBDeploymentRoleArn:
+    Description: "ARN of the IAM Role for ALB deployment"
+    Value: !GetAtt ALBDeploymentRole.Arn
