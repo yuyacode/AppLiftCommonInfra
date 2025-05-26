@@ -73,7 +73,7 @@ Resources:
   CompanyTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckPath: /company/login
+      HealthCheckPath: /company
       HealthCheckPort: traffic-port
       Matcher:
         HttpCode: "200"
@@ -91,7 +91,7 @@ Resources:
   StudentTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckPath: /student/login
+      HealthCheckPath: /student
       HealthCheckPort: traffic-port
       Matcher:
         HttpCode: "200"
