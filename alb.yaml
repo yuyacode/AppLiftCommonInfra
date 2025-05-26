@@ -10,66 +10,66 @@ Parameters:
   SGStackName:
     Type: String
     Description: Name of the stack that manages the resources of the security group
-  # DomainCertificateStackName:
-  #   Type: String
-  #   Description: Name of the stack that manages the resources of domain and certificate
+  DomainCertificateStackName:
+    Type: String
+    Description: Name of the stack that manages the resources of domain and certificate
 
 Resources:
-  # PublicALB:
-  #   Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-  #   Properties:
-  #     IpAddressType: ipv4
-  #     Scheme: internet-facing
-  #     SecurityGroups:
-  #       - Fn::ImportValue: !Sub "${SGStackName}-PublicAlbSGId"
-  #     Subnets:
-  #       - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1aId"
-  #       - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1cId"
-  #   Metadata:
-  #     cfn_nag:
-  #       rules_to_suppress:
-  #         - id: W52
-  #           reason: "Disabled due to low current user traffic and no need for traffic analysis at this time; cost and operational overhead considerations."
-  # PublicALBListener:
-  #   Type: AWS::ElasticLoadBalancingV2::Listener
-  #   Properties:
-  #     Certificates:
-  #       - CertificateArn: !ImportValue
-  #           Fn::Sub: "${DomainCertificateStackName}-CertificateArn-AppLiftCom"
-  #     DefaultActions:
-  #       - Type: fixed-response
-  #         FixedResponseConfig:
-  #           ContentType: text/plain
-  #           MessageBody: "Resource not found. Please use a valid path like /company or /student."
-  #           StatusCode: "404"
-  #     LoadBalancerArn: !Ref PublicALB
-  #     Port: 443
-  #     Protocol: HTTPS
-  #     SslPolicy: ELBSecurityPolicy-TLS13-1-2-Res-2021-06
-  # CompanyPathRule:
-  #   Type: AWS::ElasticLoadBalancingV2::ListenerRule
-  #   Properties:
-  #     Actions:
-  #       - Type: forward
-  #         TargetGroupArn: !Ref CompanyTargetGroup
-  #     Conditions:
-  #       - Field: path-pattern
-  #         PathPatternConfig:
-  #           Values: ["/company*"]
-  #     ListenerArn: !Ref PublicALBListener
-  #     Priority: 1
-  # StudentPathRule:
-  #   Type: AWS::ElasticLoadBalancingV2::ListenerRule
-  #   Properties:
-  #     Actions:
-  #       - Type: forward
-  #         TargetGroupArn: !Ref StudentTargetGroup
-  #     Conditions:
-  #       - Field: path-pattern
-  #         PathPatternConfig:
-  #           Values: ["/student*"]
-  #     ListenerArn: !Ref PublicALBListener
-  #     Priority: 2
+  PublicALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      IpAddressType: ipv4
+      Scheme: internet-facing
+      SecurityGroups:
+        - Fn::ImportValue: !Sub "${SGStackName}-PublicAlbSGId"
+      Subnets:
+        - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1aId"
+        - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1cId"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W52
+            reason: "Disabled due to low current user traffic and no need for traffic analysis at this time; cost and operational overhead considerations."
+  PublicALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Certificates:
+        - CertificateArn: !ImportValue
+            Fn::Sub: "${DomainCertificateStackName}-CertificateArn-AppLiftCom"
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: text/plain
+            MessageBody: "Resource not found. Please use a valid path like /company or /student."
+            StatusCode: "404"
+      LoadBalancerArn: !Ref PublicALB
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-TLS13-1-2-Res-2021-06
+  CompanyPathRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref CompanyTargetGroup
+      Conditions:
+        - Field: path-pattern
+          PathPatternConfig:
+            Values: ["/company*"]
+      ListenerArn: !Ref PublicALBListener
+      Priority: 1
+  StudentPathRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref StudentTargetGroup
+      Conditions:
+        - Field: path-pattern
+          PathPatternConfig:
+            Values: ["/student*"]
+      ListenerArn: !Ref PublicALBListener
+      Priority: 2
   CompanyTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -155,26 +155,26 @@ Resources:
         Fn::Sub: "${NetworkStackName}-VPCId"
 
 Outputs:
-  # PublicALBArn:
-  #   Description: ARN of the Public ALB
-  #   Value: !Ref PublicALB
-  #   Export:
-  #     Name: !Sub "${AWS::StackName}-PublicALBArn"
-  # PublicALBDNSName:
-  #   Description: DNS Name of the Public ALB
-  #   Value: !GetAtt PublicALB.DNSName
-  #   Export:
-  #     Name: !Sub "${AWS::StackName}-PublicALBDNSName"
-  # PublicALBCanonicalHostedZoneId:
-  #   Description: Canonical Hosted Zone ID of the Public ALB
-  #   Value: !GetAtt PublicALB.CanonicalHostedZoneID
-  #   Export:
-  #     Name: !Sub "${AWS::StackName}-PublicALBCanonicalHostedZoneId"
-  # PublicALBListenerArn:
-  #   Description: ARN of the Public ALB Listener
-  #   Value: !Ref PublicALBListener
-  #   Export:
-  #     Name: !Sub "${AWS::StackName}-PublicALBListenerArn"
+  PublicALBArn:
+    Description: ARN of the Public ALB
+    Value: !Ref PublicALB
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicALBArn"
+  PublicALBDNSName:
+    Description: DNS Name of the Public ALB
+    Value: !GetAtt PublicALB.DNSName
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicALBDNSName"
+  PublicALBCanonicalHostedZoneId:
+    Description: Canonical Hosted Zone ID of the Public ALB
+    Value: !GetAtt PublicALB.CanonicalHostedZoneID
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicALBCanonicalHostedZoneId"
+  PublicALBListenerArn:
+    Description: ARN of the Public ALB Listener
+    Value: !Ref PublicALBListener
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicALBListenerArn"
   CompanyTargetGroupArn:
     Description: ARN of the Company Target Group
     Value: !Ref CompanyTargetGroup
