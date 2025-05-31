@@ -194,28 +194,28 @@ jobs:
             --stack-name ECS-Task-Execution-Role \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
 
-  # deploy-domain-certificate:
-  #   needs: [create_iam_role_for_deployment]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  deploy-domain-certificate:
+    needs: [create_iam_role_for_deployment]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         role-to-assume: ${{ secrets.DOMAIN_CERTIFICATE_DEPLOYMENT_ROLE_ARN }}
-  #         aws-region: ap-northeast-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DOMAIN_CERTIFICATE_DEPLOYMENT_ROLE_ARN }}
+          aws-region: ap-northeast-1
 
-  #     - name: Deploy Domain Certificate
-  #       run: |
-  #         aws cloudformation deploy \
-  #           --template-file domain-certificate.yaml \
-  #           --stack-name Domain-Certificate \
-  #           --parameter-overrides \
-  #             HostedZoneId=Z03831111H7LDS5Y2U8PQ \
-  #             AppFQDN=app-lift.com. \
-  #             ALBStackName=ALB
+      - name: Deploy Domain Certificate
+        run: |
+          aws cloudformation deploy \
+            --template-file domain-certificate.yaml \
+            --stack-name Domain-Certificate \
+            --parameter-overrides \
+              HostedZoneId=Z03831111H7LDS5Y2U8PQ \
+              AppFQDN=app-lift.com. \
+              ALBStackName=ALB
 
   # ───────────────────────────────────────────────────────────────
   # 【事前準備】ELBサービス用Service-Linked-Roleの作成
@@ -226,25 +226,25 @@ jobs:
   # 
   # ※cloudformationテンプレートの可搬性を高めるため、Service-Linked-Roleは手動で作成する運用としています。
   # ───────────────────────────────────────────────────────────────
-  # deploy-alb:
-  #   needs: [deploy-security-group, deploy-domain-certificate]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  deploy-alb:
+    needs: [deploy-security-group, deploy-domain-certificate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         role-to-assume: ${{ secrets.ALB_DEPLOYMENT_ROLE_ARN }}
-  #         aws-region: ap-northeast-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.ALB_DEPLOYMENT_ROLE_ARN }}
+          aws-region: ap-northeast-1
 
-  #     - name: Deploy ALB
-  #       run: |
-  #         aws cloudformation deploy \
-  #           --template-file alb.yaml \
-  #           --stack-name ALB \
-  #           --parameter-overrides \
-  #             NetworkStackName=Network-Stack \
-  #             SGStackName=Security-Group \
-  #             DomainCertificateStackName=Domain-Certificate
+      - name: Deploy ALB
+        run: |
+          aws cloudformation deploy \
+            --template-file alb.yaml \
+            --stack-name ALB \
+            --parameter-overrides \
+              NetworkStackName=Network-Stack \
+              SGStackName=Security-Group \
+              DomainCertificateStackName=Domain-Certificate
