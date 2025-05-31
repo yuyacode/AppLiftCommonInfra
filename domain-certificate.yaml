@@ -5,6 +5,12 @@ Parameters:
   HostedZoneId:
     Type: String
     Description: The Route 53 Hosted Zone ID for app-lift.com.
+  AppFQDN:
+    Type: String
+    Description: The fully qualified domain name for the application.
+  ALBStackName:
+    Type: String
+    Description: Name of the stack that manages ALB
 
 Resources:
   Certificate:
@@ -15,6 +21,18 @@ Resources:
         - DomainName: app-lift.com
           HostedZoneId: !Ref HostedZoneId
       ValidationMethod: DNS
+  ApplicationAliasRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref AppFQDN
+      Type: A
+      AliasTarget:
+        DNSName: !ImportValue
+          Fn::Sub: "${ALBStackName}-PublicALBDNSName"
+        HostedZoneId: !ImportValue
+          Fn::Sub: "${ALBStackName}-PublicALBCanonicalHostedZoneId"
+      EvaluateTargetHealth: true
 
 Outputs:
   CertificateArn:
