@@ -32,7 +32,7 @@ Resources:
           Fn::Sub: "${ALBStackName}-PublicALBDNSName"
         HostedZoneId: !ImportValue
           Fn::Sub: "${ALBStackName}-PublicALBCanonicalHostedZoneId"
-      EvaluateTargetHealth: true
+        EvaluateTargetHealth: true
 
 Outputs:
   CertificateArn:
