@@ -213,7 +213,9 @@ jobs:
             --template-file domain-certificate.yaml \
             --stack-name Domain-Certificate \
             --parameter-overrides \
-              HostedZoneId=Z03831111H7LDS5Y2U8PQ
+              HostedZoneId=Z03831111H7LDS5Y2U8PQ \
+              AppFQDN=app-lift.com. \
+              ALBStackName=ALB
 
   # ───────────────────────────────────────────────────────────────
   # 【事前準備】ELBサービス用Service-Linked-Roleの作成

@@ -551,6 +551,7 @@ Resources:
                   - acm:RequestCertificate
                   - acm:DescribeCertificate
                   - acm:DeleteCertificate
+                  - acm:ListCertificates
                   - acm:ListTagsForCertificate
                   - acm:AddTagsToCertificate
                   - acm:RemoveTagsFromCertificate
@@ -559,7 +560,12 @@ Resources:
                 Action:
                   - route53:ChangeResourceRecordSets
                   - route53:ListResourceRecordSets
+                  - route53:GetHostedZone
                 Resource: !Sub "arn:aws:route53:::hostedzone/${TargetHostedZoneId}"
+              - Effect: Allow
+                Action:
+                  - route53:GetChange
+                Resource: "arn:aws:route53:::change/*"
     Metadata:
       cfn_nag:
         rules_to_suppress:
