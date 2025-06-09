@@ -408,6 +408,7 @@ Resources:
                 token.actions.githubusercontent.com:sub:
                   - repo:yuyacode/AppLift:*
                   - repo:yuyacode/AppLiftMessageApi:*
+                  - repo:yuyacode/AppLiftMessageScheduler:*
       Policies:
         - PolicyName: "ECRLoginAndPushImagePolicy"
           PolicyDocument:
