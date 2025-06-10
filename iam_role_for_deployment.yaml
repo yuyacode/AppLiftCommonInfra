@@ -885,7 +885,7 @@ Resources:
                   - lambda:DeleteFunction
                   - lambda:TagResource
                   - lambda:UntagResource
-                Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountID}:function/*"
+                Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function/*"
         - PolicyName: "AllowPassRoleToLambdaPolicy"
           PolicyDocument:
             Version: "2012-10-17"
@@ -905,7 +905,7 @@ Resources:
                 Action:
                   - ecr:DescribeImages
                   - ecr:DescribeRepositories
-                Resource: !Sub "arn:aws:ecr:${AWS::Region}:${AWS::AccountID}:repository/*"
+                Resource: !Sub "arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/*"
         - PolicyName: "EC2NetworkDescribePolicy"
           PolicyDocument:
             Version: "2012-10-17"
@@ -920,6 +920,8 @@ Resources:
     Metadata:
       cfn_nag:
         rules_to_suppress:
+          - id: F38
+            reason: "iam:PassRole with Resource '*' is mitigated by Condition restricting PassedToService to lambda.amazonaws.com."
           - id: W11
             reason: >
               This IAM role is assumed by GitHub Actions for infrastructure deployment using CloudFormation templates.
