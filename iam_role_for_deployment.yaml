@@ -886,7 +886,7 @@ Resources:
                   - lambda:TagResource
                   - lambda:UntagResource
                   - lambda:ListTags
-                Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function/*"
+                Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
         - PolicyName: "AllowPassRoleToLambdaPolicy"
           PolicyDocument:
             Version: "2012-10-17"
