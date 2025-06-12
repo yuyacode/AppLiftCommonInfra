@@ -885,6 +885,7 @@ Resources:
                   - lambda:DeleteFunction
                   - lambda:TagResource
                   - lambda:UntagResource
+                  - lambda:ListTags
                 Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function/*"
         - PolicyName: "AllowPassRoleToLambdaPolicy"
           PolicyDocument:
@@ -893,6 +894,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - iam:PassRole
+                  - iam:GetRole
                 Resource: "*"
                 Condition:
                   StringEquals:
