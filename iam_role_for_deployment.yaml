@@ -905,8 +905,14 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - ecr:DescribeImages
+                  - ecr:GetAuthorizationToken
+                  - ecr:GetRepositoryPolicy
+                  - ecr:SetRepositoryPolicy
                   - ecr:DescribeRepositories
+                  - ecr:BatchGetImage
+                  - ecr:DescribeImages
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchCheckLayerAvailability
                 Resource: !Sub "arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/*"
         - PolicyName: "EC2NetworkDescribePolicy"
           PolicyDocument:
