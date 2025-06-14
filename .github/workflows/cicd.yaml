@@ -80,7 +80,8 @@ jobs:
   #             ExecutionRoleStackName=ECS-Task-Execution-Role \
   #             CompanyRoleStackName=Company-Role \
   #             StudentRoleStackName=Student-Role \
-  #             MessageAPIRoleStackName=Message-API-Role
+  #             MessageAPIRoleStackName=Message-API-Role \
+  #             BucketName=${{ secrets.S3_BUCKET_NAME }}
 
   # deploy-network-stack:
   #   needs: [create_iam_role_for_deployment]

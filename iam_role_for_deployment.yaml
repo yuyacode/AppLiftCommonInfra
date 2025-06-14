@@ -22,6 +22,8 @@ Parameters:
     Type: String
   MessageAPIRoleStackName:
     Type: String
+  BucketName:
+    Type: String
 
 Resources:
   NetworkResourceDeploymentRole:
@@ -1011,7 +1013,12 @@ Resources:
               - Effect: Allow
                 Action:
                   - s3:PutObject
-                Resource: "*"
+                Resource: !Sub "arn:aws:s3:::${BucketName}/*"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
 
 Outputs:
   NetworkResourceDeploymentRoleArn:
