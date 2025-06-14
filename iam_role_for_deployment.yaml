@@ -986,6 +986,32 @@ Resources:
               Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
           - id: W28
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
+  S3PUTRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: S3PUTRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftMessageScheduler:*"
+      Policies:
+        - PolicyName: "S3PUTPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource: "*"
 
 Outputs:
   NetworkResourceDeploymentRoleArn:
@@ -1027,3 +1053,6 @@ Outputs:
   S3DeploymentRoleArn:
     Description: "ARN of the IAM Role for S3 deployment"
     Value: !GetAtt S3DeploymentRole.Arn
+  S3PUTRoleArn:
+    Description: "ARN of the IAM Role to put files in S3"
+    Value: !GetAtt S3PUTRole.Arn
