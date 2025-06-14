@@ -964,16 +964,16 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - s3:CreateBucket,
-                  - s3:PutBucketPolicy,
-                  - s3:PutEncryptionConfiguration,
-                  - s3:PutLifecycleConfiguration,
-                  - s3:PutBucketOwnershipControls,
-                  - s3:PutBucketPublicAccessBlock,
-                  - s3:PutBucketVersioning,
-                  - s3:GetBucketLocation,
-                  - s3:DeleteBucket,
-                  - s3:DeleteBucketPolicy"
+                  - s3:CreateBucket
+                  - s3:PutBucketPolicy
+                  - s3:PutEncryptionConfiguration
+                  - s3:PutLifecycleConfiguration
+                  - s3:PutBucketOwnershipControls
+                  - s3:PutBucketPublicAccessBlock
+                  - s3:PutBucketVersioning
+                  - s3:GetBucketLocation
+                  - s3:DeleteBucket
+                  - s3:DeleteBucketPolicy
                 Resource: "*"
     Metadata:
       cfn_nag:
