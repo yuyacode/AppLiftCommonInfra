@@ -22,6 +22,10 @@ Parameters:
     Type: String
   MessageAPIRoleStackName:
     Type: String
+  MessageSchedulerRoleStackName:
+    Type: String
+  BucketName:
+    Type: String
 
 Resources:
   NetworkResourceDeploymentRole:
@@ -359,6 +363,7 @@ Resources:
                 token.actions.githubusercontent.com:sub:
                   - repo:yuyacode/AppLift:*
                   - repo:yuyacode/AppLiftMessageApi:*
+                  - repo:yuyacode/AppLiftMessageScheduler:*
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
       Policies:
@@ -407,6 +412,7 @@ Resources:
                 token.actions.githubusercontent.com:sub:
                   - repo:yuyacode/AppLift:*
                   - repo:yuyacode/AppLiftMessageApi:*
+                  - repo:yuyacode/AppLiftMessageScheduler:*
       Policies:
         - PolicyName: "ECRLoginAndPushImagePolicy"
           PolicyDocument:
@@ -451,6 +457,7 @@ Resources:
                 token.actions.githubusercontent.com:sub:
                   - repo:yuyacode/AppLift:*
                   - repo:yuyacode/AppLiftMessageApi:*
+                  - repo:yuyacode/AppLiftMessageScheduler:*
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
       Policies:
@@ -590,6 +597,7 @@ Resources:
                 token.actions.githubusercontent.com:sub:
                   - repo:yuyacode/AppLift:*
                   - repo:yuyacode/AppLiftMessageApi:*
+                  - repo:yuyacode/AppLiftMessageScheduler:*
       ManagedPolicyArns:
         - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
       Policies:
@@ -847,6 +855,296 @@ Resources:
               Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
           - id: W28
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
+  LambdaDeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LambdaDeploymentRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftMessageScheduler:*"
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
+      Policies:
+        - PolicyName: "LambdaManagementPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:CreateFunction
+                  - lambda:UpdateFunctionConfiguration
+                  - lambda:UpdateFunctionCode
+                  - lambda:GetFunction
+                  - lambda:GetFunctionConfiguration
+                  - lambda:DeleteFunction
+                  - lambda:TagResource
+                  - lambda:UntagResource
+                  - lambda:ListTags
+                Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
+        - PolicyName: "AllowPassRoleToLambdaPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                  - iam:GetRole
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    "iam:PassedToService": lambda.amazonaws.com
+        - PolicyName: "AllowECRDescribePolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+                  - ecr:GetRepositoryPolicy
+                  - ecr:SetRepositoryPolicy
+                  - ecr:DescribeRepositories
+                  - ecr:BatchGetImage
+                  - ecr:DescribeImages
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchCheckLayerAvailability
+                Resource: !Sub "arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/*"
+        - PolicyName: "EC2NetworkDescribePolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeVpcs
+                  - logs:DescribeLogGroups
+                Resource: "*"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: F38
+            reason: "iam:PassRole with Resource '*' is mitigated by Condition restricting PassedToService to lambda.amazonaws.com."
+          - id: W11
+            reason: >
+              This IAM role is assumed by GitHub Actions for infrastructure deployment using CloudFormation templates.
+              The templates dynamically create and manage various AWS resources.
+              Due to the dynamic and flexible nature of the deployment process, it is not feasible to predefine specific resource ARNs.
+              Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
+  S3DeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: S3DeploymentRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftMessageScheduler:*"
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
+      Policies:
+        - PolicyName: "S3ManagementPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:CreateBucket
+                  - s3:PutBucketPolicy
+                  - s3:PutEncryptionConfiguration
+                  - s3:PutLifecycleConfiguration
+                  - s3:PutBucketOwnershipControls
+                  - s3:PutBucketPublicAccessBlock
+                  - s3:PutBucketVersioning
+                  - s3:GetBucketLocation
+                  - s3:DeleteBucket
+                  - s3:DeleteBucketPolicy
+                Resource: "*"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: >
+              This IAM role is assumed by GitHub Actions for infrastructure deployment using CloudFormation templates.
+              The templates dynamically create and manage various AWS resources.
+              Due to the dynamic and flexible nature of the deployment process, it is not feasible to predefine specific resource ARNs.
+              Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
+  S3PUTRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: S3PUTRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftMessageScheduler:*"
+      Policies:
+        - PolicyName: "S3PUTPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource: !Sub "arn:aws:s3:::${BucketName}/*"
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
+  StepFunctionsDeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: StepFunctionsDeploymentRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftMessageScheduler:*"
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
+      Policies:
+        - PolicyName: "StateMachineManagementPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:CreateStateMachine
+                  - states:UpdateStateMachine
+                  - states:DeleteStateMachine
+                  - states:DescribeStateMachine
+                  - states:TagResource
+                Resource: "*"
+        - PolicyName: "S3ObjectGetPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                Resource: "arn:aws:s3:::*/*"
+        - PolicyName: "AllowPassRoleToStepFunctionsPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: !ImportValue
+                  Fn::Sub: "${MessageSchedulerRoleStackName}-StepFunctionsExecutionRoleArn"
+                Condition:
+                  StringEquals:
+                    iam:PassedToService: states.amazonaws.com
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: >
+              This IAM role is assumed by GitHub Actions for infrastructure deployment using CloudFormation templates.
+              The templates dynamically create and manage various AWS resources.
+              Due to the dynamic and flexible nature of the deployment process, it is not feasible to predefine specific resource ARNs.
+              Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
+  EventBridgeDeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EventBridgeDeploymentRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOIDCProviderArn
+            Action:
+              - "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: "sts.amazonaws.com"
+              StringLike:
+                "token.actions.githubusercontent.com:sub": "repo:yuyacode/AppLiftMessageScheduler:*"
+      ManagedPolicyArns:
+        - Fn::ImportValue: !Sub "${GHAOIDCProvisionerROLESetupStackName}-CloudFormationStackManagementPolicyArn"
+      Policies:
+        - PolicyName: "SchedulerManagementPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - scheduler:CreateScheduleGroup
+                  - scheduler:DeleteScheduleGroup
+                  - scheduler:GetScheduleGroup
+                  - scheduler:CreateSchedule
+                  - scheduler:UpdateSchedule
+                  - scheduler:DeleteSchedule
+                  - scheduler:GetSchedule
+                  - scheduler:TagResource
+                  - scheduler:UntagResource
+                  - scheduler:ListTagsForResource
+                Resource: "*"
+        - PolicyName: "AllowPassRoleToSchedulerPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: !ImportValue
+                  Fn::Sub: "${MessageSchedulerRoleStackName}-SchedulerExecutionRoleArn"
+                Condition:
+                  StringEquals:
+                    iam:PassedToService: scheduler.amazonaws.com
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W11
+            reason: >
+              This IAM role is assumed by GitHub Actions for infrastructure deployment using CloudFormation templates.
+              The templates dynamically create and manage various AWS resources.
+              Due to the dynamic and flexible nature of the deployment process, it is not feasible to predefine specific resource ARNs.
+              Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
+          - id: W28
+            reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
 
 Outputs:
   NetworkResourceDeploymentRoleArn:
@@ -882,3 +1180,18 @@ Outputs:
   ALBDeploymentRoleArn:
     Description: "ARN of the IAM Role for ALB deployment"
     Value: !GetAtt ALBDeploymentRole.Arn
+  LambdaDeploymentRoleArn:
+    Description: "ARN of the IAM Role for Lambda deployment"
+    Value: !GetAtt LambdaDeploymentRole.Arn
+  S3DeploymentRoleArn:
+    Description: "ARN of the IAM Role for S3 deployment"
+    Value: !GetAtt S3DeploymentRole.Arn
+  S3PUTRoleArn:
+    Description: "ARN of the IAM Role to put files in S3"
+    Value: !GetAtt S3PUTRole.Arn
+  StepFunctionsDeploymentRoleArn:
+    Description: "ARN of the IAM Role for Step Functions deployment"
+    Value: !GetAtt StepFunctionsDeploymentRole.Arn
+  EventBridgeDeploymentRoleArn:
+    Description: "ARN of the IAM Role for EventBridge deployment"
+    Value: !GetAtt EventBridgeDeploymentRole.Arn

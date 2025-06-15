@@ -116,6 +116,22 @@ Resources:
               Allows all outbound traffic explicitly, primarily to address cfn-lint F1000.
               The specific outbound requirements for this RDS instance (e.g., for OS patches, metrics, AWS APIs) have not yet been fully determined.
               This rule is intended as a temporary measure and should be reviewed and restricted to only necessary connections once the requirements are clarified to adhere to the principle of least privilege.
+  MessageSchedulerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Message Scheduler Security Group (Rules defined separately)
+      VpcId: !ImportValue
+        Fn::Sub: "${NetworkStackName}-VPCId"
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-MessageSchedulerSG
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W5
+            reason: >
+              Egress to 0.0.0.0/0 on port 443 is temporarily allowed as the specific outbound destinations required by the application (e.g., external APIs, AWS services) are not yet fully identified or finalized.
+              This rule will be reviewed and tightened to specific endpoints or IP ranges based on the principle of least privilege once the application's communication requirements become clear.
   PublicAlbSGIngressHttp:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -242,6 +258,15 @@ Resources:
       FromPort: !Ref InternalAlbListenerPort
       ToPort: !Ref InternalAlbListenerPort
       SourceSecurityGroupId: !Ref StudentAppSG
+  InternalAlbSGIngressFromMessageScheduler:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allow inbound from Message Scheduler SG to Internal ALB
+      GroupId: !Ref InternalAlbSG
+      IpProtocol: tcp
+      FromPort: !Ref InternalAlbListenerPort
+      ToPort: !Ref InternalAlbListenerPort
+      SourceSecurityGroupId: !Ref MessageSchedulerSG
   InternalAlbSGEgressToMessageApi:
     Type: AWS::EC2::SecurityGroupEgress
     Properties:
@@ -312,6 +337,24 @@ Resources:
       GroupId: !Ref RdsSG
       IpProtocol: "-1"
       CidrIp: 0.0.0.0/0
+  MessageSchedulerSGEgressToInternalAlb:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      Description: Allow outbound from Message Scheduler to Internal ALB SG
+      GroupId: !Ref MessageSchedulerSG
+      IpProtocol: tcp
+      FromPort: !Ref InternalAlbListenerPort
+      ToPort: !Ref InternalAlbListenerPort
+      DestinationSecurityGroupId: !Ref InternalAlbSG
+  MessageSchedulerSGEgressToInternetHttps:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      Description: Allow outbound HTTPS from Message Scheduler to the internet
+      GroupId: !Ref MessageSchedulerSG
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      CidrIp: 0.0.0.0/0
 
 Outputs:
   PublicAlbSGId:
@@ -344,3 +387,8 @@ Outputs:
     Value: !GetAtt RdsSG.GroupId
     Export:
       Name: !Sub ${AWS::StackName}-RdsSGId
+  MessageSchedulerSGId:
+    Description: Security Group ID for the Message Scheduler Lambda
+    Value: !GetAtt MessageSchedulerSG.GroupId
+    Export:
+      Name: !Sub ${AWS::StackName}-MessageSchedulerSGId
