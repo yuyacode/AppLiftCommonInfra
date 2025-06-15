@@ -81,6 +81,7 @@ jobs:
               CompanyRoleStackName=Company-Role \
               StudentRoleStackName=Student-Role \
               MessageAPIRoleStackName=Message-API-Role \
+              MessageSchedulerRoleStackName=Message-Scheduler-Role \
               BucketName=${{ secrets.S3_BUCKET_NAME }}
 
   deploy-network-stack:
