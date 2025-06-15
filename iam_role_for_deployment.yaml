@@ -1119,6 +1119,8 @@ Resources:
                   - scheduler:DeleteSchedule
                   - scheduler:GetSchedule
                   - scheduler:TagResource
+                  - scheduler:UntagResource
+                  - scheduler:ListTagsForResource
                 Resource: "*"
         - PolicyName: "AllowPassRoleToSchedulerPolicy"
           PolicyDocument:
