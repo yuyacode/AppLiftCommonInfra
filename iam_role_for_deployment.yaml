@@ -671,6 +671,27 @@ Resources:
                   - ecs:UntagResource
                   - ecs:ListTagsForResource
                 Resource: "*"
+        - PolicyName: ApplicationAutoScalingManagementPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - application-autoscaling:RegisterScalableTarget
+                  - application-autoscaling:DeregisterScalableTarget
+                  - application-autoscaling:DescribeScalableTargets
+                  - application-autoscaling:PutScalingPolicy
+                  - application-autoscaling:DeleteScalingPolicy
+                  - application-autoscaling:DescribeScalingPolicies
+                  - cloudwatch:PutMetricAlarm
+                  - cloudwatch:DeleteAlarms
+                  - cloudwatch:DescribeAlarms
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ecs:DescribeServices
+                  - ecs:DescribeClusters
+                Resource: "*"
         - PolicyName: IAMPassRoleAndGetRolePolicy
           PolicyDocument:
             Version: '2012-10-17'
@@ -743,6 +764,8 @@ Resources:
                   StringLike:
                     iam:AWSServiceName:
                       - ecs.amazonaws.com
+                      - autoscaling.amazonaws.com
+                      - application-autoscaling.amazonaws.com
         - PolicyName: ServiceLinkedRoleForECSManagePolicy
           PolicyDocument:
             Version: "2012-10-17"
@@ -1145,53 +1168,3 @@ Resources:
               Instead, the policy strictly limits allowed actions to the minimum set necessary for infrastructure provisioning.
           - id: W28
             reason: "Fixed role name is required so that GitHub Actions can reliably assume this IAM role using its ARN."
-
-Outputs:
-  NetworkResourceDeploymentRoleArn:
-    Description: "ARN of the IAM Role for network resource deployment"
-    Value: !GetAtt NetworkResourceDeploymentRole.Arn
-  SecurityGroupDeploymentRoleArn:
-    Description: "ARN of the IAM Role for security group deployment"
-    Value: !GetAtt SecurityGroupDeploymentRole.Arn
-  DBDeploymentRoleArn:
-    Description: "ARN of the IAM Role for db deployment"
-    Value: !GetAtt DBDeploymentRole.Arn
-  ECRRepositoryDeploymentRoleArn:
-    Description: "ARN of the IAM Role for ecr repository deployment"
-    Value: !GetAtt ECRRepositoryDeploymentRole.Arn
-  ECRImagePushRoleArn:
-    Description: "ARN of the IAM Role for ecr image push"
-    Value: !GetAtt ECRImagePushRole.Arn
-  LogGroupDeploymentRoleArn:
-    Description: "ARN of the IAM Role for log group deployment"
-    Value: !GetAtt LogGroupDeploymentRole.Arn
-  ECSClusterDeploymentRoleArn:
-    Description: "ARN of the IAM Role for ecs cluster deployment"
-    Value: !GetAtt ECSClusterDeploymentRole.Arn
-  DomainCertificateDeploymentRoleArn:
-    Description: "ARN of the IAM Role for domain and certificate deployment"
-    Value: !GetAtt DomainCertificateDeploymentRole.Arn
-  SecretsManagerDeploymentRoleArn:
-    Description: "ARN of the IAM Role for secrets manager deployment"
-    Value: !GetAtt SecretsManagerDeploymentRole.Arn
-  ECSServiceTaskDeploymentRoleArn:
-    Description: "ARN of the IAM Role for ECS Service and Task deployment"
-    Value: !GetAtt ECSServiceTaskDeploymentRole.Arn
-  ALBDeploymentRoleArn:
-    Description: "ARN of the IAM Role for ALB deployment"
-    Value: !GetAtt ALBDeploymentRole.Arn
-  LambdaDeploymentRoleArn:
-    Description: "ARN of the IAM Role for Lambda deployment"
-    Value: !GetAtt LambdaDeploymentRole.Arn
-  S3DeploymentRoleArn:
-    Description: "ARN of the IAM Role for S3 deployment"
-    Value: !GetAtt S3DeploymentRole.Arn
-  S3PUTRoleArn:
-    Description: "ARN of the IAM Role to put files in S3"
-    Value: !GetAtt S3PUTRole.Arn
-  StepFunctionsDeploymentRoleArn:
-    Description: "ARN of the IAM Role for Step Functions deployment"
-    Value: !GetAtt StepFunctionsDeploymentRole.Arn
-  EventBridgeDeploymentRoleArn:
-    Description: "ARN of the IAM Role for EventBridge deployment"
-    Value: !GetAtt EventBridgeDeploymentRole.Arn

@@ -170,6 +170,11 @@ Outputs:
     Value: !GetAtt PublicALB.CanonicalHostedZoneID
     Export:
       Name: !Sub "${AWS::StackName}-PublicALBCanonicalHostedZoneId"
+  PublicALBFullName:
+    Description: Full Name of the Public ALB
+    Value: !GetAtt PublicALB.LoadBalancerFullName
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicALBFullName"
   PublicALBListenerArn:
     Description: ARN of the Public ALB Listener
     Value: !Ref PublicALBListener
@@ -180,11 +185,21 @@ Outputs:
     Value: !Ref CompanyTargetGroup
     Export:
       Name: !Sub "${AWS::StackName}-CompanyTargetGroupArn"
+  CompanyTargetGroupFullName:
+    Description: Full Name of the Company Target Group
+    Value: !GetAtt CompanyTargetGroup.TargetGroupFullName
+    Export:
+      Name: !Sub "${AWS::StackName}-CompanyTargetGroupFullName"
   StudentTargetGroupArn:
     Description: ARN of the Student Target Group
     Value: !Ref StudentTargetGroup
     Export:
       Name: !Sub "${AWS::StackName}-StudentTargetGroupArn"
+  StudentTargetGroupFullName:
+    Description: Full Name of the Student Target Group
+    Value: !GetAtt StudentTargetGroup.TargetGroupFullName
+    Export:
+      Name: !Sub "${AWS::StackName}-StudentTargetGroupFullName"
   InternalALBArn:
     Description: ARN of the Internal ALB
     Value: !Ref InternalALB
@@ -210,3 +225,8 @@ Outputs:
     Value: !Ref MessageApiTargetGroup
     Export:
       Name: !Sub "${AWS::StackName}-MessageApiTargetGroupArn"
+  MessageApiTargetGroupFullName:
+    Description: Full Name of the Message API Target Group
+    Value: !GetAtt MessageApiTargetGroup.TargetGroupFullName
+    Export:
+      Name: !Sub "${AWS::StackName}-MessageApiTargetGroupFullName"
