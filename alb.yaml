@@ -215,6 +215,11 @@ Outputs:
     Value: !GetAtt InternalALB.CanonicalHostedZoneID
     Export:
       Name: !Sub "${AWS::StackName}-InternalALBCanonicalHostedZoneId"
+  InternalALBFullName:
+    Description: Full Name of the Internal ALB
+    Value: !GetAtt InternalALB.LoadBalancerFullName
+    Export:
+      Name: !Sub "${AWS::StackName}-InternalALBFullName"
   InternalALBListenerArn:
     Description: ARN of the Internal ALB Listener
     Value: !Ref InternalALBListener
